@@ -1,0 +1,1385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CipherCore — CSE721 Cryptography</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600;700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #fafafa;
+    --surface:   #ffffff;
+    --panel:     #ffffff;
+    --border:    #ecdde4;
+    --accent:    #b01652;
+    --accent2:   #d03b6e;
+    --accent3:   #e8a0b4;
+    --text:      #2a1520;
+    --text-dim:  #a08090;
+    --success:   #1a7a4a;
+    --danger:    #c0184a;
+    --mono:      'DM Mono', monospace;
+    --display:   'Playfair Display', serif;
+    --body-font: 'DM Sans', sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--body-font);
+    font-size: 16px;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── GRID BACKGROUND ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(192,24,90,.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(192,24,90,.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── HEADER ── */
+  header {
+    position: relative;
+    z-index: 10;
+    background: rgba(255,255,255,.95);
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(10px);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    gap: 3rem;
+    height: 64px;
+  }
+  .logo {
+    font-family: var(--display);
+    font-size: 1.25rem;
+    font-weight: 900;
+    color: var(--accent);
+    letter-spacing: .02em;
+    text-shadow: 0 0 20px rgba(192,24,90,.2);
+    white-space: nowrap;
+  }
+  .logo span { color: var(--accent2); }
+  nav { display: flex; gap: .25rem; flex-wrap: wrap; }
+  .home-btn {
+    margin-left: auto;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-dim);
+    font-family: var(--body-font);
+    font-size: .82rem;
+    font-weight: 600;
+    letter-spacing: .06em;
+    padding: .35rem .9rem;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .home-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(176,22,82,.05);
+  }
+  .nav-page-name {
+    font-family: var(--body-font);
+    font-size: .85rem;
+    font-weight: 600;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  /* ── LAYOUT ── */
+  main {
+    position: relative;
+    z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+  }
+
+  /* ── PAGE TITLES ── */
+  .page-title {
+    font-family: var(--display);
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: .1em;
+    margin-bottom: .4rem;
+    text-shadow: 0 0 30px rgba(192,24,90,.2);
+  }
+  .page-subtitle {
+    color: var(--text-dim);
+    font-size: .9rem;
+    margin-bottom: 2rem;
+    font-family: var(--mono);
+  }
+
+  /* ── PAGES ── */
+  .page { display: none; animation: fadeIn .3s ease; }
+  .page.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ── PANEL ── */
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.25rem;
+  }
+  .panel-title {
+    font-family: var(--mono);
+    font-size: .75rem;
+    color: var(--accent2);
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+  }
+  .panel-title::before {
+    content: '';
+    display: inline-block;
+    width: 8px; height: 8px;
+    background: var(--accent2);
+    border-radius: 50%;
+    box-shadow: 0 0 6px rgba(232,64,122,.5);
+  }
+
+  /* ── GRID LAYOUT ── */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+  @media(max-width:720px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+
+  /* ── FORM ELEMENTS ── */
+  label {
+    display: block;
+    font-family: var(--mono);
+    font-size: .72rem;
+    color: var(--text-dim);
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    margin-bottom: .4rem;
+  }
+  input[type=text], input[type=number], textarea, select {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: .85rem;
+    padding: .6rem .8rem;
+    outline: none;
+    transition: border-color .2s;
+    margin-bottom: .9rem;
+  }
+  input:focus, textarea:focus, select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(192,24,90,.12);
+  }
+  textarea { min-height: 80px; resize: vertical; }
+  select { appearance: none; cursor: pointer; }
+
+  /* ── BUTTONS ── */
+  .btn-row { display: flex; gap: .6rem; flex-wrap: wrap; margin-top: .25rem; }
+  .btn {
+    font-family: var(--body-font);
+    font-weight: 700;
+    font-size: .85rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    padding: .55rem 1.4rem;
+    border: 1px solid;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .btn-primary {
+    background: rgba(192,24,90,.08);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .btn-primary:hover {
+    background: rgba(192,24,90,.16);
+    box-shadow: 0 0 14px rgba(192,24,90,.25);
+  }
+  .btn-green {
+    background: rgba(232,64,122,.07);
+    border-color: var(--accent2);
+    color: var(--accent2);
+  }
+  .btn-green:hover { background: rgba(232,64,122,.12); box-shadow: 0 0 14px rgba(232,64,122,.25); }
+  .btn-orange {
+    background: rgba(255,143,171,.1);
+    border-color: var(--accent3);
+    color: var(--accent3);
+  }
+  .btn-orange:hover { background: rgba(255,143,171,.15); box-shadow: 0 0 14px rgba(255,143,171,.3); }
+  .btn-ghost {
+    background: none;
+    border-color: var(--border);
+    color: var(--text-dim);
+  }
+  .btn-ghost:hover { border-color: var(--text-dim); color: var(--text); }
+  .btn:disabled { opacity: .4; cursor: not-allowed; }
+
+  /* ── TOGGLE GROUP ── */
+  .toggle-group { display: flex; gap: 0; margin-bottom: .9rem; border: 1px solid var(--border); border-radius: 5px; overflow: hidden; }
+  .toggle-group button {
+    flex: 1;
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-family: var(--body-font);
+    font-weight: 600;
+    font-size: .82rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding: .55rem;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .toggle-group button.active {
+    background: rgba(0,212,255,.12);
+    color: var(--accent);
+  }
+  .toggle-group button + button { border-left: 1px solid var(--border); }
+
+  /* ── OUTPUT ── */
+  .output-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 1rem;
+    margin-top: .5rem;
+  }
+  .output-label {
+    font-family: var(--mono);
+    font-size: .7rem;
+    color: var(--text-dim);
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    margin-bottom: .4rem;
+  }
+  .output-value {
+    font-family: var(--mono);
+    font-size: .85rem;
+    color: var(--accent2);
+    word-break: break-all;
+    line-height: 1.6;
+  }
+  .output-value.accent { color: var(--accent); }
+  .output-value.orange { color: var(--accent3); }
+  .error-msg {
+    background: rgba(192,24,74,.08);
+    border: 1px solid rgba(192,24,74,.25);
+    border-radius: 5px;
+    color: var(--danger);
+    font-family: var(--mono);
+    font-size: .82rem;
+    padding: .7rem 1rem;
+    margin-top: .75rem;
+  }
+
+  /* ── ROUND KEYS TABLE ── */
+  .round-keys {
+    margin-top: .5rem;
+    max-height: 220px;
+    overflow-y: auto;
+  }
+  .round-keys::-webkit-scrollbar { width: 4px; }
+  .round-keys::-webkit-scrollbar-track { background: var(--surface); }
+  .round-keys::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  .rk-row {
+    display: flex;
+    gap: 1rem;
+    padding: .3rem .5rem;
+    border-radius: 3px;
+    font-family: var(--mono);
+    font-size: .78rem;
+    transition: background .1s;
+  }
+  .rk-row:hover { background: rgba(192,24,90,.04); }
+  .rk-num { color: var(--text-dim); width: 55px; }
+  .rk-val { color: var(--accent); letter-spacing: .08em; }
+
+  /* ── FREQUENCY BAR ── */
+  .freq-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: .3rem;
+    margin-top: .5rem;
+  }
+  .freq-item {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    font-family: var(--mono);
+    font-size: .75rem;
+  }
+  .freq-letter { color: var(--accent); width: 14px; }
+  .freq-bar-wrap { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .freq-bar { height: 100%; background: var(--accent); border-radius: 3px; transition: width .4s ease; }
+  .freq-pct { color: var(--text-dim); width: 38px; text-align: right; }
+
+  /* ── MATRIX VIZ ── */
+  .matrix-viz { overflow-x: auto; margin-top: .5rem; }
+  .matrix-table { border-collapse: collapse; font-family: var(--mono); font-size: .8rem; }
+  .matrix-table td {
+    border: 1px solid var(--border);
+    padding: .3rem .5rem;
+    text-align: center;
+    min-width: 28px;
+    color: var(--accent2);
+  }
+  .matrix-table td.pad { color: var(--text-dim); }
+
+  /* ── RSA CARDS ── */
+  .key-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1rem;
+    margin-bottom: .75rem;
+  }
+  .key-card-title {
+    font-family: var(--mono);
+    font-size: .7rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    margin-bottom: .5rem;
+  }
+  .key-card-title.pub { color: var(--accent); }
+  .key-card-title.priv { color: var(--danger); }
+  .key-card-title.data { color: var(--accent2); }
+  .key-field { margin-bottom: .3rem; }
+  .key-field .kf-label { color: var(--text-dim); font-family: var(--mono); font-size: .7rem; margin-right: .4rem; }
+  .key-field .kf-value { color: var(--text); font-family: var(--mono); font-size: .78rem; word-break: break-all; }
+
+  /* ── ECC POINTS TABLE ── */
+  .points-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--mono);
+    font-size: .8rem;
+  }
+  .points-table th {
+    color: var(--text-dim);
+    font-size: .7rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    padding: .4rem .6rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  .points-table td {
+    padding: .3rem .6rem;
+    border-bottom: 1px solid rgba(30,45,61,.5);
+  }
+  .points-table td:first-child { color: var(--text-dim); }
+  .points-table td:not(:first-child) { color: var(--accent2); }
+  .points-table tr:hover td { background: rgba(192,24,90,.03); }
+
+  /* ── BRUTE FORCE CANDIDATES ── */
+  .bf-candidate {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: .8rem 1rem;
+    margin-bottom: .5rem;
+  }
+  .bf-rank { font-family: var(--mono); font-size: .7rem; color: var(--text-dim); margin-bottom: .3rem; }
+  .bf-key { font-family: var(--mono); font-size: .75rem; color: var(--accent); margin-bottom: .2rem; }
+  .bf-text { font-family: var(--mono); font-size: .85rem; color: var(--accent2); word-break: break-all; }
+
+  /* ── SPINNER ── */
+  .spinner {
+    display: inline-block;
+    width: 16px; height: 16px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent2);
+    border-radius: 50%;
+    animation: spin .6s linear infinite;
+    vertical-align: middle;
+    margin-right: .4rem;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── HOME PAGE ── */
+  .home-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+  @media(max-width:720px) { .home-grid { grid-template-columns: 1fr; } }
+  .algo-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: all .25s;
+    position: relative;
+    overflow: hidden;
+  }
+  .algo-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(192,24,90,.04), transparent);
+    opacity: 0;
+    transition: opacity .25s;
+  }
+  .algo-card:hover { border-color: var(--accent); transform: translateY(-3px); box-shadow: 0 8px 30px rgba(192,24,90,.12); }
+  .algo-card:hover::after { opacity: 1; }
+  .algo-card-cat {
+    font-family: var(--mono);
+    font-size: .65rem;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    margin-bottom: .6rem;
+  }
+  .algo-card-name {
+    font-family: var(--display);
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: .5rem;
+  }
+  .algo-card-desc { font-size: .85rem; color: var(--text-dim); line-height: 1.5; }
+
+  /* ── SECTION DIVIDER ── */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 1.5rem 0;
+    position: relative;
+  }
+
+  /* ── COPY BUTTON ── */
+  .copy-btn {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: .65rem;
+    padding: .15rem .4rem;
+    cursor: pointer;
+    margin-left: .5rem;
+    transition: all .2s;
+    vertical-align: middle;
+  }
+  .copy-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(192,24,90,.05); }
+
+  /* ── COLLAPSIBLE ── */
+  .collapsible-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    user-select: none;
+  }
+  .collapsible-header .chevron {
+    font-size: .7rem;
+    color: var(--text-dim);
+    transition: transform .2s;
+  }
+  .collapsible-header.open .chevron { transform: rotate(180deg); }
+  .collapsible-body { display: none; padding-top: .75rem; }
+  .collapsible-body.open { display: block; }
+
+  input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+  /* ── HERO ── */
+  .hero {
+    text-align: center;
+    padding: 3.5rem 1rem 2.5rem;
+  }
+  .hero-eyebrow {
+    font-family: var(--mono);
+    font-size: .72rem;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--accent2);
+    margin-bottom: 1rem;
+  }
+  .hero-title {
+    font-family: var(--display);
+    font-size: clamp(2.8rem, 7vw, 5rem);
+    font-weight: 900;
+    color: var(--accent);
+    line-height: 1.05;
+    margin-bottom: 1.1rem;
+    letter-spacing: -.01em;
+  }
+  .hero-tagline {
+    font-family: var(--body-font);
+    font-size: 1.05rem;
+    font-weight: 400;
+    color: var(--text-dim);
+    max-width: 560px;
+    margin: 0 auto 2rem;
+    line-height: 1.7;
+  }
+  .hero-divider {
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent3));
+    border-radius: 2px;
+    margin: 0 auto;
+  }
+
+  /* ── CATEGORY SECTIONS ── */
+  .cat-section { margin-bottom: 2rem; }
+  .cat-label {
+    font-family: var(--mono);
+    font-size: .72rem;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    font-weight: 500;
+    padding: .3rem .7rem;
+    border-radius: 20px;
+    display: inline-block;
+    margin-bottom: 1rem;
+  }
+  .cat-classical { background: rgba(232,64,122,.1); color: var(--accent2); }
+  .cat-symmetric { background: rgba(192,24,90,.1);  color: var(--accent);  }
+  .cat-pubkey    { background: rgba(255,143,171,.2); color: #b0184a; }
+
+  .home-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  @media(max-width:640px) { .home-grid-2 { grid-template-columns: 1fr; } }
+
+  /* ── ALGO CARD (override) ── */
+  .algo-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: .4rem;
+    padding: 1.4rem 1.4rem 1.1rem;
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all .22s;
+    box-shadow: 0 2px 8px rgba(192,24,90,.05);
+    overflow: hidden;
+  }
+  .algo-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent3));
+    opacity: 0;
+    transition: opacity .22s;
+  }
+  .algo-card:hover {
+    border-color: var(--accent2);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(192,24,90,.12);
+  }
+  .algo-card:hover::before { opacity: 1; }
+  .algo-card-icon {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff;
+    font-family: var(--display);
+    font-size: 1rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: .3rem;
+    flex-shrink: 0;
+  }
+  .algo-card-name {
+    font-family: var(--body-font);
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .algo-card-desc {
+    font-family: var(--body-font);
+    font-size: .85rem;
+    color: var(--text-dim);
+    line-height: 1.55;
+    flex: 1;
+  }
+  .algo-card-arrow {
+    font-size: 1.1rem;
+    color: var(--accent);
+    align-self: flex-end;
+    transition: transform .2s;
+  }
+  .algo-card:hover .algo-card-arrow { transform: translateX(4px); }
+
+  /* ── HOME FOOTER ── */
+  .home-footer {
+    margin-top: 3rem;
+    padding: 2rem 0 1.5rem;
+    text-align: center;
+  }
+  .footer-line {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+    margin-bottom: 1.8rem;
+  }
+  .footer-text {
+    font-family: var(--body-font);
+    font-size: .95rem;
+    color: var(--text-dim);
+    line-height: 1.7;
+    max-width: 560px;
+    margin: 0 auto .5rem;
+  }
+  .footer-text strong { color: var(--accent); font-weight: 600; }
+  .footer-sub {
+    font-family: var(--mono);
+    font-size: .72rem;
+    color: #c9a0b4;
+    letter-spacing: .05em;
+  }
+
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo" onclick="showPage('home')" style="cursor:pointer">CIPHER<span>CORE</span></div>
+  <div id="navPageName" class="nav-page-name"></div>
+  <button id="homeBtn" class="home-btn" onclick="showPage('home')" style="display:none">← Home</button>
+</header>
+
+<main>
+
+<!-- ══════════════ HOME ══════════════ -->
+<div class="page active" id="page-home">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-eyebrow">CSE721 · Introduction to Cryptography</div>
+    <h1 class="hero-title">CipherCore</h1>
+    <p class="hero-tagline">A hands-on implementation of classical and modern cryptographic algorithms.</p>
+    <div class="hero-divider"></div>
+  </div>
+
+  <!-- Category sections -->
+  <div class="cat-section">
+    <div class="cat-label cat-classical">Classical Cryptography</div>
+    <div class="home-grid home-grid-2">
+      <div class="algo-card" onclick="showPage('substitution')">
+        <div class="algo-card-icon">S</div>
+        <div class="algo-card-name">Substitution Cipher</div>
+        <div class="algo-card-desc">Monoalphabetic substitution with a 26-letter permutation key. Includes frequency analysis and intelligent brute-force attack.</div>
+        <div class="algo-card-arrow">→</div>
+      </div>
+      <div class="algo-card" onclick="showPage('transposition')">
+        <div class="algo-card-icon">T</div>
+        <div class="algo-card-name">Double Transposition</div>
+        <div class="algo-card-desc">Two-pass columnar transposition using row and column permutation keys, with step-by-step matrix visualization.</div>
+        <div class="algo-card-arrow">→</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cat-section">
+    <div class="cat-label cat-symmetric">Symmetric-Key Cryptography</div>
+    <div class="home-grid home-grid-2">
+      <div class="algo-card" onclick="showPage('des')">
+        <div class="algo-card-icon">D</div>
+        <div class="algo-card-name">DES</div>
+        <div class="algo-card-desc">Data Encryption Standard — 56-bit key, 16-round Feistel network with full key schedule and all round subkeys.</div>
+        <div class="algo-card-arrow">→</div>
+      </div>
+      <div class="algo-card" onclick="showPage('aes')">
+        <div class="algo-card-icon">A</div>
+        <div class="algo-card-name">AES</div>
+        <div class="algo-card-desc">Advanced Encryption Standard — AES-128 / 192 / 256 with Rijndael key expansion and all round keys displayed.</div>
+        <div class="algo-card-arrow">→</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cat-section">
+    <div class="cat-label cat-pubkey">Public-Key Cryptography</div>
+    <div class="home-grid home-grid-2">
+      <div class="algo-card" onclick="showPage('rsa')">
+        <div class="algo-card-icon">R</div>
+        <div class="algo-card-name">RSA</div>
+        <div class="algo-card-desc">Miller-Rabin prime generation, 64–2048-bit keys, and Pollard's Rho factorization attack demonstrated on small keys.</div>
+        <div class="algo-card-arrow">→</div>
+      </div>
+      <div class="algo-card" onclick="showPage('ecc')">
+        <div class="algo-card-icon">E</div>
+        <div class="algo-card-name">ECC + ECDH</div>
+        <div class="algo-card-desc">Elliptic curve point arithmetic over GF(p), key pair generation, and Diffie-Hellman key exchange simulation.</div>
+        <div class="algo-card-arrow">→</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="home-footer">
+    <div class="footer-line"></div>
+    <p class="footer-text">
+      This project was developed as part of the <strong>CSE721: Introduction to Cryptography</strong> course at BRAC University, Master's program.
+    </p>
+    <p class="footer-sub">All algorithms are implemented from scratch in Python — no cryptographic libraries used.</p>
+  </footer>
+
+</div>
+
+<!-- ══════════════ SUBSTITUTION ══════════════ -->
+<div class="page" id="page-substitution">
+  <div class="page-title">Substitution Cipher</div>
+  
+  <div class="toggle-group" style="max-width:360px">
+    <button class="active" onclick="subSetMode('encrypt',this)">Encrypt</button>
+    <button onclick="subSetMode('decrypt',this)">Decrypt</button>
+    <button onclick="subSetMode('bruteforce',this)">Brute Force</button>
+  </div>
+
+  <div class="grid-2">
+    <div class="panel">
+      <div class="panel-title">Input</div>
+      <label id="sub-text-label">Plaintext</label>
+      <textarea id="sub-text" placeholder="Enter text..."></textarea>
+      <div id="sub-key-section">
+        <label>Key (26-letter permutation)</label>
+        <input type="text" id="sub-key" placeholder="e.g. QWERTYUIOPASDFGHJKLZXCVBNM or leave blank to auto-generate" maxlength="26">
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="runSubstitution()"><span id="sub-btn-text">Encrypt</span></button>
+        <button class="btn btn-ghost" onclick="clearSub()">Clear</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Output</div>
+      <div id="sub-output-area">
+        <div style="color:var(--text-dim);font-family:var(--mono);font-size:.8rem">// Result will appear here</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ TRANSPOSITION ══════════════ -->
+<div class="page" id="page-transposition">
+  <div class="page-title">Double Transposition Cipher</div>
+  
+  <div class="toggle-group" style="max-width:240px">
+    <button class="active" onclick="dtSetMode('encrypt',this)">Encrypt</button>
+    <button onclick="dtSetMode('decrypt',this)">Decrypt</button>
+  </div>
+
+  <div class="grid-2">
+    <div class="panel">
+      <div class="panel-title">Input</div>
+      <label id="dt-text-label">Plaintext</label>
+      <textarea id="dt-text" placeholder="Enter text..."></textarea>
+      <label>Key 1 — Row permutation (e.g. 3,5,1,4,2)</label>
+      <input type="text" id="dt-key1" placeholder="3,5,1,4,2">
+      <label>Key 2 — Column permutation (e.g. 1,3,2)</label>
+      <input type="text" id="dt-key2" placeholder="1,3,2">
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="runTransposition()"><span id="dt-btn-text">Encrypt</span></button>
+        <button class="btn btn-ghost" onclick="clearDT()">Clear</button>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Output</div>
+      <div id="dt-output-area">
+        <div style="color:var(--text-dim);font-family:var(--mono);font-size:.8rem">// Result will appear here</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ DES ══════════════ -->
+<div class="page" id="page-des">
+  <div class="page-title">DES — Data Encryption Standard</div>
+  
+  <div class="toggle-group" style="max-width:240px">
+    <button class="active" onclick="desSetMode('encrypt',this)">Encrypt</button>
+    <button onclick="desSetMode('decrypt',this)">Decrypt</button>
+  </div>
+
+  <div class="grid-2">
+    <div class="panel">
+      <div class="panel-title">Input</div>
+      <label id="des-text-label">Plaintext</label>
+      <textarea id="des-text" placeholder="Enter plaintext..." style="min-height:60px"></textarea>
+      <label>Key (16 hex chars = 8 bytes)</label>
+      <input type="text" id="des-key" placeholder="Leave blank to auto-generate" maxlength="16">
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="runDES()"><span id="des-btn-text">Encrypt</span></button>
+        <button class="btn btn-ghost" onclick="clearDES()">Clear</button>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Output</div>
+      <div id="des-output-area">
+        <div style="color:var(--text-dim);font-family:var(--mono);font-size:.8rem">// Result will appear here</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ AES ══════════════ -->
+<div class="page" id="page-aes">
+  <div class="page-title">AES — Advanced Encryption Standard</div>
+  
+  <div class="toggle-group" style="max-width:240px">
+    <button class="active" onclick="aesSetMode('encrypt',this)">Encrypt</button>
+    <button onclick="aesSetMode('decrypt',this)">Decrypt</button>
+  </div>
+
+  <div class="grid-2">
+    <div class="panel">
+      <div class="panel-title">Input</div>
+      <label id="aes-text-label">Plaintext</label>
+      <textarea id="aes-text" placeholder="Enter plaintext..." style="min-height:60px"></textarea>
+      <label>Key Size</label>
+      <div class="toggle-group" style="margin-bottom:.9rem">
+        <button class="active" onclick="aesSetBits(128,this)" id="aes-bits-128">AES-128</button>
+        <button onclick="aesSetBits(192,this)" id="aes-bits-192">AES-192</button>
+        <button onclick="aesSetBits(256,this)" id="aes-bits-256">AES-256</button>
+      </div>
+      <label>Key (hex, or leave blank to auto-generate)</label>
+      <input type="text" id="aes-key" placeholder="Leave blank to auto-generate">
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="runAES()"><span id="aes-btn-text">Encrypt</span></button>
+        <button class="btn btn-ghost" onclick="clearAES()">Clear</button>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Output</div>
+      <div id="aes-output-area">
+        <div style="color:var(--text-dim);font-family:var(--mono);font-size:.8rem">// Result will appear here</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ RSA ══════════════ -->
+<div class="page" id="page-rsa">
+  <div class="page-title">RSA — Rivest-Shamir-Adleman</div>
+  
+  <div class="grid-2">
+    <!-- LEFT: Generate + Encrypt + Decrypt -->
+    <div>
+      <!-- Generate -->
+      <div class="panel">
+        <div class="panel-title">1 — Generate Keys</div>
+        <label>Key Size</label>
+        <div class="toggle-group" style="margin-bottom:.9rem">
+          <button onclick="rsaSetBits(64,this)" id="rsa-bits-64">64-bit</button>
+          <button class="active" onclick="rsaSetBits(512,this)" id="rsa-bits-512">512-bit</button>
+          <button onclick="rsaSetBits(1024,this)" id="rsa-bits-1024">1024-bit</button>
+          <button onclick="rsaSetBits(2048,this)" id="rsa-bits-2048">2048-bit</button>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="rsaGenerate()">Generate Key Pair</button>
+        </div>
+      </div>
+      <!-- Encrypt -->
+      <div class="panel">
+        <div class="panel-title">2 — Encrypt</div>
+        <label>Plaintext</label>
+        <input type="text" id="rsa-pt" placeholder="Short message (fit in key size)">
+        <div class="btn-row">
+          <button class="btn btn-green" onclick="rsaEncrypt()">Encrypt</button>
+        </div>
+      </div>
+      <!-- Decrypt -->
+      <div class="panel">
+        <div class="panel-title">3 — Decrypt</div>
+        <label>Ciphertext (integer or 0x hex)</label>
+        <input type="text" id="rsa-ct-input" placeholder="Paste ciphertext here">
+        <div class="btn-row">
+          <button class="btn btn-orange" onclick="rsaDecrypt()">Decrypt</button>
+        </div>
+      </div>
+    </div>
+    <!-- RIGHT: Output -->
+    <div class="panel" style="align-self:start">
+      <div class="panel-title">Output</div>
+      <div id="rsa-output-area">
+        <div style="color:var(--text-dim);font-family:var(--mono);font-size:.8rem">// Generate keys first, then encrypt or decrypt</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ ECC ══════════════ -->
+<div class="page" id="page-ecc">
+  <div class="page-title">ECC — Elliptic Curve Cryptography</div>
+  
+  <div class="panel" style="max-width:480px">
+    <div class="panel-title">Curve Selection</div>
+    <label>Predefined Curves</label>
+    <select id="ecc-curve">
+      <option value="tiny">Tiny: y²=x³+x+1 (mod 23) — n=28, best for listing all points</option>
+      <option value="p17">Textbook: y²=x³+2x+2 (mod 17) — n=19</option>
+      <option value="small">Small: y²=x³+2x+3 (mod 97) — n=5</option>
+    </select>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="eccListPoints()">List All Points</button>
+      <button class="btn btn-green" onclick="eccKeygen()">Generate Key Pair</button>
+      <button class="btn btn-orange" onclick="eccECDH()">ECDH Exchange</button>
+    </div>
+  </div>
+
+  <div id="ecc-output-area" style="margin-top:1rem">
+    <div style="color:var(--text-dim);font-family:var(--mono);font-size:.8rem">// Select a curve and choose an operation</div>
+  </div>
+</div>
+
+</main>
+
+<script>
+// ─── STATE ───────────────────────────────────────────
+let subMode = 'encrypt';
+let dtMode  = 'encrypt';
+let desMode = 'encrypt';
+let aesMode = 'encrypt';
+let aesBits = 128;
+let rsaBits = 512;
+let rsaKeys = null;
+
+// ─── NAVIGATION ──────────────────────────────────────
+const PAGE_NAMES = {
+  home: '',
+  substitution: 'Substitution Cipher',
+  transposition: 'Double Transposition',
+  des: 'DES',
+  aes: 'AES',
+  rsa: 'RSA',
+  ecc: 'ECC'
+};
+
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  const label = document.getElementById('navPageName');
+  label.textContent = PAGE_NAMES[name] || '';
+  document.getElementById('homeBtn').style.display = name === 'home' ? 'none' : 'block';
+}
+
+// ─── API HELPER ──────────────────────────────────────
+async function api(endpoint, body) {
+  const res = await fetch('/api/' + endpoint, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(body)
+  });
+  return res.json();
+}
+
+function copyText(text) {
+  navigator.clipboard.writeText(text).catch(() => {});
+}
+
+// ─── FREQ BAR RENDER ─────────────────────────────────
+function renderFreq(freq) {
+  if (!freq || freq.length === 0) return '';
+  const max = Math.max(...freq.map(f => f.pct), 1);
+  return `<div class="freq-grid">${freq.map(f =>
+    `<div class="freq-item">
+      <span class="freq-letter">${f.letter}</span>
+      <div class="freq-bar-wrap"><div class="freq-bar" style="width:${(f.pct/max*100).toFixed(1)}%"></div></div>
+      <span class="freq-pct">${f.pct.toFixed(1)}%</span>
+    </div>`
+  ).join('')}</div>`;
+}
+
+// ─── ROUND KEYS RENDER ───────────────────────────────
+function renderRoundKeys(keys, title='Round Keys') {
+  return `
+    <div class="collapsible-header" onclick="toggleCollapsible(this)">
+      <div class="output-label">${title} (${keys.length} total)</div>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="collapsible-body">
+      <div class="round-keys">
+        ${keys.map(k =>
+          `<div class="rk-row"><span class="rk-num">Round ${String(k.round ?? k.round).padStart(2,' ')}:</span><span class="rk-val">${k.key}</span></div>`
+        ).join('')}
+      </div>
+    </div>`;
+}
+
+function toggleCollapsible(header) {
+  header.classList.toggle('open');
+  header.nextElementSibling.classList.toggle('open');
+}
+
+function errBox(msg) {
+  return `<div class="error-msg">⚠ ${msg}</div>`;
+}
+
+function outRow(label, value, cls='') {
+  return `<div class="output-box">
+    <div class="output-label">${label} <button class="copy-btn" onclick="copyText('${value.replace(/'/g,"\\'")}')">copy</button></div>
+    <div class="output-value ${cls}">${value}</div>
+  </div>`;
+}
+
+// ─── SUBSTITUTION ────────────────────────────────────
+function subSetMode(mode, btn) {
+  subMode = mode;
+  document.querySelectorAll('.toggle-group button').forEach(b => {
+    if (b.closest('#page-substitution')) b.classList.remove('active');
+  });
+  btn.classList.add('active');
+  document.getElementById('sub-text-label').textContent = mode === 'encrypt' ? 'Plaintext' : 'Ciphertext';
+  document.getElementById('sub-btn-text').textContent = mode === 'bruteforce' ? 'Attack' : (mode === 'encrypt' ? 'Encrypt' : 'Decrypt');
+  document.getElementById('sub-key-section').style.display = mode === 'bruteforce' ? 'none' : 'block';
+  document.getElementById('sub-text').placeholder = mode === 'bruteforce' ? 'Enter ciphertext to attack...' : 'Enter text...';
+}
+
+async function runSubstitution() {
+  const text = document.getElementById('sub-text').value;
+  const key  = document.getElementById('sub-key').value.trim().toUpperCase();
+  const out  = document.getElementById('sub-output-area');
+  out.innerHTML = `<span class="spinner"></span><span style="font-family:var(--mono);font-size:.8rem;color:var(--text-dim)">Processing...</span>`;
+  const data = await api('substitution', { action: subMode, text, key });
+  if (data.error) { out.innerHTML = errBox(data.error); return; }
+
+  if (subMode === 'bruteforce') {
+    out.innerHTML = `
+      <div class="output-label">Brute Force Attack — Top ${data.candidates.length} Candidates</div>
+      <div style="font-family:var(--mono);font-size:.72rem;color:var(--text-dim);margin-bottom:.75rem">
+        Strategy: frequency mapping + hill climbing (26! keyspace, intelligent search)
+      </div>
+      ${data.candidates.map(c => `
+        <div class="bf-candidate">
+          <div class="bf-rank">Rank #${c.rank} — fitness score: ${c.score}</div>
+          <div class="bf-key">Key: ${c.key}</div>
+          <div class="bf-text">${c.text}</div>
+        </div>`).join('')}`;
+  } else {
+    const label = subMode === 'encrypt' ? 'Output (Encryption)' : 'Output (Decryption)';
+    out.innerHTML = `
+      ${data.key !== key ? outRow('Auto-Generated Key', data.key) : ''}
+      ${outRow(label, data.result, 'accent')}
+      <div class="output-box" style="margin-top:.5rem">
+        <div class="output-label">Output (Frequency Analysis)</div>
+        ${renderFreq(data.freq)}
+      </div>`;
+  }
+}
+
+function clearSub() {
+  document.getElementById('sub-text').value = '';
+  document.getElementById('sub-key').value = '';
+  document.getElementById('sub-output-area').innerHTML = '<div style="color:var(--text-dim);font-family:var(--mono);font-size:.8rem">// Result will appear here</div>';
+}
+
+// ─── TRANSPOSITION ───────────────────────────────────
+function dtSetMode(mode, btn) {
+  dtMode = mode;
+  document.querySelectorAll('#page-transposition .toggle-group button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('dt-text-label').textContent = mode === 'encrypt' ? 'Plaintext' : 'Ciphertext';
+  document.getElementById('dt-btn-text').textContent = mode === 'encrypt' ? 'Encrypt' : 'Decrypt';
+}
+
+async function runTransposition() {
+  const text = document.getElementById('dt-text').value.replace(/\r/g, '');
+  const key1 = document.getElementById('dt-key1').value.trim();
+  const key2 = document.getElementById('dt-key2').value.trim();
+  const out  = document.getElementById('dt-output-area');
+  out.innerHTML = `<span class="spinner"></span><span style="font-family:var(--mono);font-size:.8rem;color:var(--text-dim)">Processing...</span>`;
+  const data = await api('transposition', { action: dtMode, text, key1, key2 });
+  if (data.error) { out.innerHTML = errBox(data.error); return; }
+
+  const label = dtMode === 'encrypt' ? 'Output (Encryption)' : 'Output (Decryption)';
+  // Matrix
+  let matrixHTML = '';
+  if (data.matrix) {
+    matrixHTML = `<div class="output-box"><div class="output-label">Input Matrix (${data.rows}×${data.cols})</div>
+      <div class="matrix-viz"><table class="matrix-table">${data.matrix.map(row =>
+        '<tr>' + row.map(c => `<td class="${c===' '?'pad':''}">${c===' '?'_':c}</td>`).join('') + '</tr>'
+      ).join('')}</table></div></div>`;
+  }
+  out.innerHTML = `
+    ${matrixHTML}
+    ${outRow(label, data.result, 'accent')}
+    <div class="output-box"><div class="output-label">Output (Frequency Analysis)</div>${renderFreq(data.freq)}</div>`;
+}
+
+function clearDT() {
+  document.getElementById('dt-text').value = '';
+  document.getElementById('dt-output-area').innerHTML = '<div style="color:var(--text-dim);font-family:var(--mono);font-size:.8rem">// Result will appear here</div>';
+}
+
+// ─── DES ─────────────────────────────────────────────
+function desSetMode(mode, btn) {
+  desMode = mode;
+  document.querySelectorAll('#page-des .toggle-group button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('des-text-label').textContent = mode === 'encrypt' ? 'Plaintext' : 'Ciphertext (hex)';
+  document.getElementById('des-btn-text').textContent = mode === 'encrypt' ? 'Encrypt' : 'Decrypt';
+  document.getElementById('des-text').placeholder = mode === 'encrypt' ? 'Enter plaintext...' : 'Enter ciphertext (hex)...';
+}
+
+async function runDES() {
+  const text = document.getElementById('des-text').value.trim();
+  const key  = document.getElementById('des-key').value.trim();
+  const out  = document.getElementById('des-output-area');
+  out.innerHTML = `<span class="spinner"></span><span style="font-family:var(--mono);font-size:.8rem;color:var(--text-dim)">Processing...</span>`;
+  const data = await api('des', { action: desMode, text, key });
+  if (data.error) { out.innerHTML = errBox(data.error); return; }
+
+  const label = desMode === 'encrypt' ? 'Output (Encryption)' : 'Output (Decryption)';
+  out.innerHTML = `
+    ${outRow('Key (auto-generated)', data.key)}
+    ${outRow(label, data.result, 'accent')}
+    <div class="output-box"><div class="collapsible-header" onclick="toggleCollapsible(this)">
+      <div class="output-label">Output (Key) — All 16 Round Keys</div><span class="chevron">▼</span>
+    </div><div class="collapsible-body">
+      <div class="round-keys">${data.round_keys.map(k =>
+        `<div class="rk-row"><span class="rk-num">Round ${String(k.round).padStart(2,' ')}:</span><span class="rk-val">${k.key}</span></div>`
+      ).join('')}</div>
+    </div></div>`;
+}
+
+function clearDES() {
+  document.getElementById('des-text').value = '';
+  document.getElementById('des-key').value = '';
+  document.getElementById('des-output-area').innerHTML = '<div style="color:var(--text-dim);font-family:var(--mono);font-size:.8rem">// Result will appear here</div>';
+}
+
+// ─── AES ─────────────────────────────────────────────
+function aesSetMode(mode, btn) {
+  aesMode = mode;
+  document.querySelectorAll('#page-aes .toggle-group:first-of-type button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('aes-text-label').textContent = mode === 'encrypt' ? 'Plaintext' : 'Ciphertext (hex)';
+  document.getElementById('aes-btn-text').textContent = mode === 'encrypt' ? 'Encrypt' : 'Decrypt';
+  document.getElementById('aes-text').placeholder = mode === 'encrypt' ? 'Enter plaintext...' : 'Enter ciphertext (hex)...';
+}
+
+function aesSetBits(bits, btn) {
+  aesBits = bits;
+  document.querySelectorAll('#page-aes .toggle-group').forEach((tg, i) => {
+    if (i === 1) tg.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+  });
+  btn.classList.add('active');
+}
+
+async function runAES() {
+  const text = document.getElementById('aes-text').value.trim();
+  const key  = document.getElementById('aes-key').value.trim();
+  const out  = document.getElementById('aes-output-area');
+  out.innerHTML = `<span class="spinner"></span><span style="font-family:var(--mono);font-size:.8rem;color:var(--text-dim)">Processing...</span>`;
+  const data = await api('aes', { action: aesMode, text, key, bits: aesBits });
+  if (data.error) { out.innerHTML = errBox(data.error); return; }
+
+  const label = aesMode === 'encrypt' ? 'Output (Encryption)' : 'Output (Decryption)';
+  const nr = data.round_keys.length;
+  out.innerHTML = `
+    ${outRow(`AES-${data.bits} Key`, data.key)}
+    ${outRow(label, data.result, 'accent')}
+    <div class="output-box"><div class="collapsible-header" onclick="toggleCollapsible(this)">
+      <div class="output-label">Output (Key) — All ${nr} Round Keys</div><span class="chevron">▼</span>
+    </div><div class="collapsible-body">
+      <div class="round-keys">${data.round_keys.map(k =>
+        `<div class="rk-row"><span class="rk-num">RK[${String(k.round).padStart(2,' ')}]:</span><span class="rk-val">${k.key}</span></div>`
+      ).join('')}</div>
+    </div></div>`;
+}
+
+function clearAES() {
+  document.getElementById('aes-text').value = '';
+  document.getElementById('aes-key').value = '';
+  document.getElementById('aes-output-area').innerHTML = '<div style="color:var(--text-dim);font-family:var(--mono);font-size:.8rem">// Result will appear here</div>';
+}
+
+// ─── RSA ─────────────────────────────────────────────
+function rsaSetBits(bits, btn) {
+  rsaBits = bits;
+  document.querySelectorAll('#page-rsa .toggle-group button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+async function rsaGenerate() {
+  const out = document.getElementById('rsa-output-area');
+  out.innerHTML = `<span class="spinner"></span><span style="font-family:var(--mono);font-size:.8rem;color:var(--text-dim)">Generating ${rsaBits}-bit key pair (may take a moment)...</span>`;
+  const data = await api('rsa', { action: 'generate', bits: rsaBits });
+  if (data.error) { out.innerHTML = errBox(data.error); return; }
+  rsaKeys = data;
+
+  let factHTML = '';
+  if (data.factorization) {
+    const f = data.factorization;
+    factHTML = `<div class="output-box" style="border-color:rgba(255,107,53,.4)">
+      <div class="output-label" style="color:var(--accent3)">⚡ Factorization Attack Result</div>
+      <div style="font-family:var(--mono);font-size:.78rem;line-height:1.8">
+        <div><span style="color:var(--text-dim)">p recovered:</span> <span style="color:var(--accent3)">${f.p}</span></div>
+        <div><span style="color:var(--text-dim)">q recovered:</span> <span style="color:var(--accent3)">${f.q}</span></div>
+        <div><span style="color:var(--text-dim)">d recovered:</span> <span style="color:var(--accent3)">${f.d_recovered}</span></div>
+        <div style="margin-top:.4rem;color:var(--success)">${f.match ? '✓ Recovered private key matches original!' : '✗ Keys differ'}</div>
+      </div>
+    </div>`;
+  } else if (rsaBits > 64) {
+    factHTML = `<div class="output-box"><div class="output-label" style="color:var(--text-dim)">Factorization Attack</div>
+      <div style="font-family:var(--mono);font-size:.78rem;color:var(--text-dim)">Not feasible for ${rsaBits}-bit keys. Use 64-bit to demo the attack.</div></div>`;
+  }
+
+  out.innerHTML = `
+    <div class="key-card">
+      <div class="key-card-title pub">Public Key</div>
+      <div class="key-field"><span class="kf-label">e =</span><span class="kf-value">${data.e}</span></div>
+      <div class="key-field"><span class="kf-label">n =</span><span class="kf-value">${data.n}</span></div>
+    </div>
+    <div class="key-card">
+      <div class="key-card-title priv">Private Key</div>
+      <div class="key-field"><span class="kf-label">d =</span><span class="kf-value">${data.d}</span></div>
+    </div>
+    <div class="key-card">
+      <div class="key-card-title" style="color:var(--text-dim)">Internal Values</div>
+      <div class="key-field"><span class="kf-label">p =</span><span class="kf-value">${data.p}</span></div>
+      <div class="key-field"><span class="kf-label">q =</span><span class="kf-value">${data.q}</span></div>
+    </div>
+    ${factHTML}`;
+}
+
+async function rsaEncrypt() {
+  if (!rsaKeys) { alert('Generate keys first.'); return; }
+  const text = document.getElementById('rsa-pt').value.trim();
+  const out = document.getElementById('rsa-output-area');
+  const prev = out.innerHTML;
+  const spinner = `<div style="margin-top:.5rem"><span class="spinner"></span><span style="font-family:var(--mono);font-size:.8rem;color:var(--text-dim)">Encrypting...</span></div>`;
+  out.innerHTML = prev + spinner;
+  const data = await api('rsa', { action: 'encrypt', text, n: rsaKeys.n, e: rsaKeys.e });
+  // Rebuild full output
+  if (data.error) { out.innerHTML = prev + errBox(data.error); return; }
+  document.getElementById('rsa-ct-input').value = data.ciphertext_hex;
+
+  // Append encrypt result to existing key display
+  const encBox = `
+    <div class="output-box" style="margin-top:.5rem">
+      <div class="output-label" style="color:var(--accent2)">Output (Ciphertext)</div>
+      <div style="font-family:var(--mono);font-size:.78rem;line-height:1.8">
+        <div><span style="color:var(--text-dim)">hex:</span> <span style="color:var(--accent2)">${data.ciphertext_hex}</span></div>
+        <div><span style="color:var(--text-dim)">int:</span> <span style="color:var(--accent2)">${data.ciphertext_int}</span></div>
+      </div>
+    </div>`;
+  out.innerHTML = prev + encBox;
+}
+
+async function rsaDecrypt() {
+  if (!rsaKeys) { alert('Generate keys first.'); return; }
+  const ct = document.getElementById('rsa-ct-input').value.trim();
+  const out = document.getElementById('rsa-output-area');
+  const prev = out.innerHTML;
+  const data = await api('rsa', { action: 'decrypt', ciphertext: ct, n: rsaKeys.n, d: rsaKeys.d });
+  if (data.error) { out.innerHTML = prev + errBox(data.error); return; }
+  const decBox = `
+    <div class="output-box" style="margin-top:.5rem">
+      <div class="output-label" style="color:var(--accent)">Output (Plaintext)</div>
+      <div class="output-value accent">${data.plaintext}</div>
+    </div>`;
+  out.innerHTML = prev + decBox;
+}
+
+// ─── ECC ─────────────────────────────────────────────
+async function eccListPoints() {
+  const curve = document.getElementById('ecc-curve').value;
+  const out = document.getElementById('ecc-output-area');
+  out.innerHTML = `<span class="spinner"></span><span style="font-family:var(--mono);font-size:.8rem;color:var(--text-dim)">Computing points...</span>`;
+  const data = await api('ecc', { action: 'list_points', curve });
+  if (data.error) { out.innerHTML = errBox(data.error); return; }
+  out.innerHTML = `
+    <div class="panel">
+      <div class="panel-title">All Multiples of G — ${data.curve}</div>
+      <div style="font-family:var(--mono);font-size:.75rem;color:var(--text-dim);margin-bottom:.75rem">G = (${data.G.x}, ${data.G.y})  |  Order n = ${data.n}</div>
+      <div style="max-height:400px;overflow-y:auto">
+        <table class="points-table">
+          <thead><tr><th>k</th><th>kG (x)</th><th>kG (y)</th></tr></thead>
+          <tbody>
+            ${data.points.map(p => `<tr><td>${p.k}G</td><td>${p.x}</td><td>${p.y}</td></tr>`).join('')}
+            <tr><td>${data.n+1}G</td><td colspan="2" style="color:var(--text-dim)">O (point at infinity)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+async function eccKeygen() {
+  const curve = document.getElementById('ecc-curve').value;
+  const out = document.getElementById('ecc-output-area');
+  out.innerHTML = `<span class="spinner"></span><span style="font-family:var(--mono);font-size:.8rem;color:var(--text-dim)">Generating key pair...</span>`;
+  const data = await api('ecc', { action: 'keygen', curve });
+  if (data.error) { out.innerHTML = errBox(data.error); return; }
+  out.innerHTML = `
+    <div class="panel">
+      <div class="panel-title">ECC Key Pair</div>
+      <div class="key-card">
+        <div class="key-card-title priv">Private Key</div>
+        <div class="key-field"><span class="kf-label">d =</span><span class="kf-value">${data.private_key}</span></div>
+      </div>
+      <div class="key-card">
+        <div class="key-card-title pub">Public Key Q = d×G</div>
+        <div class="key-field"><span class="kf-label">Q =</span><span class="kf-value">(${data.public_key.x}, ${data.public_key.y})</span></div>
+        <div class="key-field"><span class="kf-label">On curve:</span><span class="kf-value" style="color:var(--success)">${data.on_curve ? '✓ Yes' : '✗ No'}</span></div>
+      </div>
+    </div>`;
+}
+
+async function eccECDH() {
+  const curve = document.getElementById('ecc-curve').value;
+  const out = document.getElementById('ecc-output-area');
+  out.innerHTML = `<span class="spinner"></span><span style="font-family:var(--mono);font-size:.8rem;color:var(--text-dim)">Running ECDH...</span>`;
+  const data = await api('ecc', { action: 'ecdh', curve });
+  if (data.error) { out.innerHTML = errBox(data.error); return; }
+  out.innerHTML = `
+    <div class="panel">
+      <div class="panel-title">ECDH Key Exchange</div>
+      <div class="grid-2" style="gap:.75rem;margin-bottom:.75rem">
+        <div class="key-card">
+          <div class="key-card-title pub">Alice</div>
+          <div class="key-field"><span class="kf-label">private a =</span><span class="kf-value">${data.alice.private}</span></div>
+          <div class="key-field"><span class="kf-label">public A =</span><span class="kf-value">(${data.alice.public.x}, ${data.alice.public.y})</span></div>
+        </div>
+        <div class="key-card">
+          <div class="key-card-title" style="color:var(--accent2)">Bob</div>
+          <div class="key-field"><span class="kf-label">private b =</span><span class="kf-value">${data.bob.private}</span></div>
+          <div class="key-field"><span class="kf-label">public B =</span><span class="kf-value">(${data.bob.public.x}, ${data.bob.public.y})</span></div>
+        </div>
+      </div>
+      <div class="key-card" style="border-color:${data.match ? 'rgba(63,185,80,.4)':'rgba(248,81,73,.4)'}">
+        <div class="key-card-title" style="color:var(--success)">Shared Secret</div>
+        <div class="key-field"><span class="kf-label">Alice: a×B =</span><span class="kf-value">(${data.shared_alice.x}, ${data.shared_alice.y})</span></div>
+        <div class="key-field"><span class="kf-label">Bob:   b×A =</span><span class="kf-value">(${data.shared_bob.x}, ${data.shared_bob.y})</span></div>
+        <div style="margin-top:.5rem;font-family:var(--mono);font-size:.82rem;color:${data.match ? 'var(--success)':'var(--danger)'}">
+          ${data.match ? '✓ Shared keys match — key exchange successful!' : '✗ Keys do not match!'}
+        </div>
+      </div>
+    </div>`;
+}
+</script>
+</body>
+</html>
