@@ -7,10 +7,7 @@ Implements ECDH key exchange.
 import random
 from typing import Optional
 
-
-# ─────────────────────────────────────────────
 #  POINT ON ELLIPTIC CURVE
-# ─────────────────────────────────────────────
 
 class ECPoint:
     """Represents a point on an elliptic curve (or the point at infinity)."""
@@ -37,7 +34,6 @@ class ECPoint:
         if self.is_infinity:
             return self
         return ECPoint(self.x, (-self.y) % self.curve.p, self.curve)
-
 
 class EllipticCurve:
     """
@@ -96,11 +92,16 @@ class EllipticCurve:
         y3 = (lam * (P.x - x3) - P.y) % p
         return ECPoint(x3, y3, self)
 
-    def scalar_mul(self, k: int, P: ECPoint) -> ECPoint:
-        """Scalar multiplication using double-and-add."""
+    def scalar_mul(self, k: int, P: ECPoint, n: int = 0) -> ECPoint:
+        """Scalar multiplication using double-and-add.
+        Reduces k mod n (group order) if n is provided, so k=3 with n=2 gives 1*G.
+        """
         result = self.infinity()
         addend = P
-        k = k % (P.curve.p if hasattr(P.curve, 'n') else P.curve.p)
+        if n > 0:
+            k = k % n
+            if k == 0:
+                return result
         while k:
             if k & 1:
                 result = self.add(result, addend)
@@ -119,10 +120,7 @@ class EllipticCurve:
                 break
         return points
 
-
-# ─────────────────────────────────────────────
 #  PREDEFINED CURVES
-# ─────────────────────────────────────────────
 
 PREDEFINED_CURVES = {
     'tiny': {
@@ -142,10 +140,7 @@ PREDEFINED_CURVES = {
     }
 }
 
-
-# ─────────────────────────────────────────────
 #  ECDH KEY EXCHANGE
-# ─────────────────────────────────────────────
 
 def ecdh_key_exchange(curve: EllipticCurve, G: ECPoint, n: int):
     """Simulate ECDH between Alice (a) and Bob (b)."""
@@ -174,10 +169,7 @@ def ecdh_key_exchange(curve: EllipticCurve, G: ECPoint, n: int):
 
     return shared_A
 
-
-# ─────────────────────────────────────────────
 #  CLI
-# ─────────────────────────────────────────────
 
 def get_curve_params() -> tuple:
     """Prompt user for curve domain parameters or use a preset."""
@@ -215,7 +207,6 @@ def get_curve_params() -> tuple:
         return None, None, None
 
     return curve, G, n
-
 
 def run():
     """Interactive CLI for ECC."""

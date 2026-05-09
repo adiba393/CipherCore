@@ -6,11 +6,8 @@ DES (Data Encryption Standard) - Full implementation from scratch.
 import os
 import random
 
-# ─────────────────────────────────────────────
 #  DES TABLES
-# ─────────────────────────────────────────────
 
-# Initial Permutation (IP)
 IP = [
     58,50,42,34,26,18,10, 2,
     60,52,44,36,28,20,12, 4,
@@ -22,7 +19,6 @@ IP = [
     63,55,47,39,31,23,15, 7,
 ]
 
-# Final Permutation (IP^-1)
 IP_INV = [
     40, 8,48,16,56,24,64,32,
     39, 7,47,15,55,23,63,31,
@@ -34,7 +30,6 @@ IP_INV = [
     33, 1,41, 9,49,17,57,25,
 ]
 
-# Expansion (E)
 E = [
     32, 1, 2, 3, 4, 5,
      4, 5, 6, 7, 8, 9,
@@ -46,7 +41,6 @@ E = [
     28,29,30,31,32, 1,
 ]
 
-# Permutation P
 P = [
     16, 7,20,21,29,12,28,17,
      1,15,23,26, 5,18,31,10,
@@ -54,7 +48,6 @@ P = [
     19,13,30, 6,22,11, 4,25,
 ]
 
-# PC-1: 64-bit key → 56-bit (drops parity bits)
 PC1 = [
     57,49,41,33,25,17, 9,
      1,58,50,42,34,26,18,
@@ -66,7 +59,6 @@ PC1 = [
     21,13, 5,28,20,12, 4,
 ]
 
-# PC-2: 56-bit → 48-bit subkey
 PC2 = [
     14,17,11,24, 1, 5,
      3,28,15, 6,21,10,
@@ -78,10 +70,8 @@ PC2 = [
     46,42,50,36,29,32,
 ]
 
-# Rotation schedule for key schedule
 SHIFTS = [1,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1]
 
-# S-Boxes (8 boxes, each 4×16)
 S_BOXES = [
     # S1
     [[14,4,13,1,2,15,11,8,3,10,6,12,5,9,0,7],
@@ -125,10 +115,7 @@ S_BOXES = [
      [2,1,14,7,4,10,8,13,15,12,9,0,3,5,6,11]],
 ]
 
-
-# ─────────────────────────────────────────────
 #  BIT MANIPULATION HELPERS
-# ─────────────────────────────────────────────
 
 def bytes_to_bits(data: bytes) -> list[int]:
     bits = []
@@ -136,7 +123,6 @@ def bytes_to_bits(data: bytes) -> list[int]:
         for i in range(7, -1, -1):
             bits.append((byte >> i) & 1)
     return bits
-
 
 def bits_to_bytes(bits: list[int]) -> bytes:
     result = []
@@ -147,27 +133,20 @@ def bits_to_bytes(bits: list[int]) -> bytes:
         result.append(byte)
     return bytes(result)
 
-
 def permute(bits: list[int], table: list[int]) -> list[int]:
     return [bits[t - 1] for t in table]
-
 
 def xor_bits(a: list[int], b: list[int]) -> list[int]:
     return [x ^ y for x, y in zip(a, b)]
 
-
 def left_rotate(bits: list[int], n: int) -> list[int]:
     return bits[n:] + bits[:n]
 
-
-# ─────────────────────────────────────────────
 #  KEY SCHEDULE
-# ─────────────────────────────────────────────
 
 def generate_key() -> bytes:
     """Generate a random 8-byte (64-bit) DES key."""
     return os.urandom(8)
-
 
 def key_schedule(key_bytes: bytes) -> list[list[int]]:
     """Generate 16 round subkeys from 64-bit key."""
@@ -182,10 +161,7 @@ def key_schedule(key_bytes: bytes) -> list[list[int]]:
         subkeys.append(subkey)
     return subkeys
 
-
-# ─────────────────────────────────────────────
 #  FEISTEL FUNCTION
-# ─────────────────────────────────────────────
 
 def f_function(R: list[int], subkey: list[int]) -> list[int]:
     """DES Feistel (F) function."""
@@ -201,13 +177,9 @@ def f_function(R: list[int], subkey: list[int]) -> list[int]:
         col = (block[1] << 3) | (block[2] << 2) | (block[3] << 1) | block[4]
         val = S_BOXES[i][row][col]
         s_out += [(val >> (3 - j)) & 1 for j in range(4)]
-    # Permutation P
     return permute(s_out, P)
 
-
-# ─────────────────────────────────────────────
 #  DES BLOCK CIPHER
-# ─────────────────────────────────────────────
 
 def des_block(block: bytes, subkeys: list[list[int]], encrypt: bool = True) -> bytes:
     """Encrypt or decrypt a single 8-byte block."""
@@ -225,24 +197,17 @@ def des_block(block: bytes, subkeys: list[list[int]], encrypt: bool = True) -> b
     combined = permute(R + L, IP_INV)
     return bits_to_bytes(combined)
 
-
-# ─────────────────────────────────────────────
 #  PADDING (PKCS#5)
-# ─────────────────────────────────────────────
 
 def pad(data: bytes) -> bytes:
     pad_len = 8 - (len(data) % 8)
     return data + bytes([pad_len] * pad_len)
 
-
 def unpad(data: bytes) -> bytes:
     pad_len = data[-1]
     return data[:-pad_len]
 
-
-# ─────────────────────────────────────────────
 #  DES ECB MODE
-# ─────────────────────────────────────────────
 
 def des_encrypt(plaintext: bytes, key: bytes) -> bytes:
     subkeys = key_schedule(key)
@@ -253,7 +218,6 @@ def des_encrypt(plaintext: bytes, key: bytes) -> bytes:
         ciphertext += des_block(block, subkeys, encrypt=True)
     return ciphertext
 
-
 def des_decrypt(ciphertext: bytes, key: bytes) -> bytes:
     subkeys = key_schedule(key)
     plaintext = b''
@@ -262,10 +226,7 @@ def des_decrypt(ciphertext: bytes, key: bytes) -> bytes:
         plaintext += des_block(block, subkeys, encrypt=False)
     return unpad(plaintext)
 
-
-# ─────────────────────────────────────────────
 #  CLI
-# ─────────────────────────────────────────────
 
 def _print_round_keys(key: bytes):
     subkeys = key_schedule(key)
@@ -276,7 +237,6 @@ def _print_round_keys(key: bytes):
         sk_hex = ''.join(f'{b:02X}' for b in sk_bytes[:6])
         print(f"  Round {i:2d}: {sk_hex}")
     print("  " + "-"*50)
-
 
 def _get_key() -> bytes:
     """Prompt user for a key or auto-generate one."""
@@ -298,7 +258,6 @@ def _get_key() -> bytes:
         key = generate_key()
         print(f"  [Auto-generated key]: {key.hex().upper()}")
         return key
-
 
 def run():
     """Interactive CLI for DES."""

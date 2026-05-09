@@ -26,8 +26,6 @@ from public_key.ecc import EllipticCurve, PREDEFINED_CURVES, ecdh_key_exchange a
 
 app = Flask(__name__)
 
-
-# ─── SUBSTITUTION ────────────────────────────────────────────
 @app.route('/api/substitution', methods=['POST'])
 def api_substitution():
     data = request.json
@@ -62,15 +60,11 @@ def api_substitution():
         })
 
     elif action == 'bruteforce':
-        results = brute_force_attack(text, top_n=5)
-        candidates = [{'rank': i+1, 'score': round(s, 2), 'key': k, 'text': t}
-                      for i, (s, k, t) in enumerate(results)]
-        return jsonify({'candidates': candidates})
+        result = brute_force_attack(text, top_n=5)
+        return jsonify(result)
 
     return jsonify({'error': 'Unknown action'}), 400
 
-
-# ─── DOUBLE TRANSPOSITION ────────────────────────────────────
 @app.route('/api/transposition', methods=['POST'])
 def api_transposition():
     data = request.json
@@ -119,8 +113,6 @@ def api_transposition():
         'padded': pad_count > 0
     })
 
-
-# ─── DES ─────────────────────────────────────────────────────
 @app.route('/api/des', methods=['POST'])
 def api_des():
     data = request.json
@@ -158,8 +150,6 @@ def api_des():
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 
-
-# ─── AES ─────────────────────────────────────────────────────
 @app.route('/api/aes', methods=['POST'])
 def api_aes():
     data = request.json
@@ -203,8 +193,6 @@ def api_aes():
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 
-
-# ─── RSA ─────────────────────────────────────────────────────
 @app.route('/api/rsa', methods=['POST'])
 def api_rsa():
     data = request.json
@@ -224,18 +212,23 @@ def api_rsa():
             'phi': hex(keys['phi']),
             'bits': bits
         }
-        # Attempt factorization for small keys
-        if bits <= 64:
-            fa = factorization_attack(keys['n'], bits)
-            if fa:
-                p_f, q_f = fa
-                phi_f = (p_f - 1) * (q_f - 1)
-                d_f = mod_inverse(keys['e'], phi_f)
-                result['factorization'] = {
-                    'p': str(p_f), 'q': str(q_f),
-                    'd_recovered': hex(d_f),
-                    'match': d_f == keys['d']
-                }
+        # Try factorization regardless of key size — fails gracefully if too large
+        fa = factorization_attack(keys['n'])
+        if fa:
+            p_f, q_f = fa
+            phi_f = (p_f - 1) * (q_f - 1)
+            d_f   = mod_inverse(keys['e'], phi_f)
+            result['factorization'] = {
+                'success': True,
+                'p': str(p_f), 'q': str(q_f),
+                'd_recovered': hex(d_f),
+                'match': d_f == keys['d']
+            }
+        else:
+            result['factorization'] = {
+                'success': False,
+                'message': f'Factorization failed — {bits}-bit modulus is too large for trial division. A real attack would require sub-exponential algorithms (GNFS, ECM) and significant compute time.'
+            }
         return jsonify(result)
 
     elif action == 'encrypt':
@@ -261,64 +254,201 @@ def api_rsa():
 
     return jsonify({'error': 'Unknown action'}), 400
 
-
-# ─── ECC ─────────────────────────────────────────────────────
 @app.route('/api/ecc', methods=['POST'])
 def api_ecc():
     data = request.json
     action = data.get('action')
 
-    curve_name = data.get('curve', 'tiny')
-    params = PREDEFINED_CURVES.get(curve_name, PREDEFINED_CURVES['tiny'])
-
     try:
-        curve = EllipticCurve(params['p'], params['a'], params['b'])
-        G = curve.point(params['Gx'], params['Gy'])
-        n = params['n']
+        p  = int(data.get('p',  23))
+        a  = int(data.get('a',  1))
+        b  = int(data.get('b',  1))
+        curve = EllipticCurve(p, a, b)
     except Exception as ex:
         return jsonify({'error': str(ex)}), 400
 
-    if action == 'list_points':
-        points_raw = curve.generate_all_points(G, n)
-        points = [{'k': k, 'x': pt.x, 'y': pt.y} for k, pt in points_raw]
+    if action == 'find_points':
+        valid = []
+        for x in range(p):
+            rhs = (pow(x, 3, p) + a * x + b) % p
+            for y in range(p):
+                if pow(y, 2, p) == rhs:
+                    valid.append({'x': x, 'y': y})
+        return jsonify({'points': valid, 'count': len(valid), 'curve': f"y\u00b2 = x\u00b3 + {a}x + {b} (mod {p})"})
+
+    elif action == 'set_generator':
+        try:
+            Gx = int(data.get('Gx'))
+            Gy = int(data.get('Gy'))
+        except:
+            return jsonify({'error': 'Invalid generator coordinates.'}), 400
+        G = curve.point(Gx, Gy)
+        if not curve.is_on_curve(G):
+            return jsonify({'error': f'Point ({Gx},{Gy}) is not on the curve.'}), 400
+        multiples = []
+        current = G
+        n = 0
+        for k in range(1, p * 2 + 10):
+            multiples.append({'k': k, 'x': current.x, 'y': current.y})
+            nxt = curve.add(current, G)
+            if nxt.is_infinity:
+                n = k + 1  # order = index of last point + 1, since (k+1)G = O
+                break
+            current = nxt
+        else:
+            n = len(multiples) + 1
+        # Add the infinity point as nG = O
+        multiples.append({'k': n, 'x': None, 'y': None, 'infinity': True})
+        return jsonify({'multiples': multiples, 'n': n, 'G': {'x': Gx, 'y': Gy}})
+
+    elif action == 'keygen':
+        try:
+            Gx = int(data.get('Gx'))
+            Gy = int(data.get('Gy'))
+            n  = int(data.get('n'))
+            d  = int(data.get('d') or 0) or random.randint(2, n - 1)
+        except:
+            return jsonify({'error': 'Missing or invalid parameters.'}), 400
+        G = curve.point(Gx, Gy)
+        if not curve.is_on_curve(G):
+            return jsonify({'error': 'Generator not on curve.'}), 400
+        if d < 1:
+            return jsonify({'error': 'Private key d must be at least 1.'}), 400
+        effective_d = d % n
+        # d % n == 0 means d is a multiple of n, which maps to the point at infinity
+        Q = curve.scalar_mul(effective_d, G, n) if effective_d != 0 else curve.infinity()
+        q_data = {'x': None, 'y': None, 'infinity': True} if Q.is_infinity else {'x': Q.x, 'y': Q.y, 'infinity': False}
+        return jsonify({'private_key': d, 'effective_d': effective_d if effective_d != 0 else n, 'public_key': q_data, 'on_curve': curve.is_on_curve(Q), 'n': n})
+
+    elif action == 'ecdh':
+        try:
+            Gx = int(data.get('Gx'))
+            Gy = int(data.get('Gy'))
+            n  = int(data.get('n'))
+            alice_a = int(data.get('alice_a') or 0) or random.randint(2, n - 1)
+            bob_b   = int(data.get('bob_b')   or 0) or random.randint(2, n - 1)
+        except:
+            return jsonify({'error': 'Missing parameters.'}), 400
+        G = curve.point(Gx, Gy)
+        if not curve.is_on_curve(G):
+            return jsonify({'error': 'Generator not on curve.'}), 400
+        if alice_a < 1:
+            return jsonify({'error': 'Alice key must be at least 1.'}), 400
+        if bob_b < 1:
+            return jsonify({'error': 'Bob key must be at least 1.'}), 400
+        alice_a_eff = alice_a % n
+        bob_b_eff   = bob_b   % n
+        if alice_a_eff == 0: alice_a_eff = n
+        if bob_b_eff   == 0: bob_b_eff   = n
+        A = curve.scalar_mul(alice_a_eff, G, n)
+        B = curve.scalar_mul(bob_b_eff,   G, n)
+        shared_A = curve.scalar_mul(alice_a_eff, B, n)
+        shared_B = curve.scalar_mul(bob_b_eff,   A, n)
         return jsonify({
-            'points': points,
-            'curve': f"y² = x³ + {params['a']}x + {params['b']} (mod {params['p']})",
-            'G': {'x': G.x, 'y': G.y},
+            'alice': {'private': alice_a, 'effective': alice_a_eff, 'public': {'x': A.x, 'y': A.y}},
+            'bob':   {'private': bob_b,   'effective': bob_b_eff,   'public': {'x': B.x, 'y': B.y}},
+            'shared_alice': {'x': shared_A.x, 'y': shared_A.y},
+            'shared_bob':   {'x': shared_B.x, 'y': shared_B.y},
+            'shared_key': shared_A.x,
+            'match': shared_A == shared_B,
             'n': n
         })
 
-    elif action == 'keygen':
-        d = random.randint(2, n - 1)
-        Q = curve.scalar_mul(d, G)
-        return jsonify({
-            'private_key': d,
-            'public_key': {'x': Q.x, 'y': Q.y},
-            'on_curve': curve.is_on_curve(Q)
-        })
-
-    elif action == 'ecdh':
-        a = random.randint(2, n - 1)
-        b = random.randint(2, n - 1)
-        A = curve.scalar_mul(a, G)
-        B = curve.scalar_mul(b, G)
-        shared_A = curve.scalar_mul(a, B)
-        shared_B = curve.scalar_mul(b, A)
-        return jsonify({
-            'alice': {'private': a, 'public': {'x': A.x, 'y': A.y}},
-            'bob':   {'private': b, 'public': {'x': B.x, 'y': B.y}},
-            'shared_alice': {'x': shared_A.x, 'y': shared_A.y},
-            'shared_bob':   {'x': shared_B.x, 'y': shared_B.y},
-            'match': shared_A == shared_B
-        })
-
     return jsonify({'error': 'Unknown action'}), 400
+
+@app.route('/api/benchmark', methods=['POST'])
+def api_benchmark():
+    import time, os
+
+    results = []
+
+    def bench(label, category, key_size, security, fn, rounds=5):
+        times = []
+        for _ in range(rounds):
+            t0 = time.perf_counter()
+            fn()
+            times.append((time.perf_counter() - t0) * 1000)
+        avg = round(sum(times) / len(times), 3)
+        mn  = round(min(times), 3)
+        mx  = round(max(times), 3)
+        results.append({
+            'label': label,
+            'category': category,
+            'key_size': key_size,
+            'security': security,
+            'avg_ms': avg,
+            'min_ms': mn,
+            'max_ms': mx,
+        })
+
+    pt_short = b'Hello World!!!!!'     # 16 bytes
+    pt_long  = os.urandom(1024)        # 1 KB
+
+    # Substitution cipher
+    from classical.substitution import encrypt as sub_enc, generate_random_key
+    sub_key = generate_random_key()
+    bench('Substitution (encrypt)', 'Classical', '26! keys', 'Broken — frequency analysis',
+          lambda: sub_enc('HELLO WORLD THIS IS A TEST MESSAGE FOR BENCHMARKING', sub_key))
+
+    # Double transposition
+    from classical.double_transposition import encrypt as dt_enc, parse_key
+    k1, k2 = parse_key('4,2,1,3'), parse_key('3,1,2')
+    bench('Double Transposition (encrypt)', 'Classical', '~(n!×m!) keys', 'Weak — preserves frequencies',
+          lambda: dt_enc('HELLO WORLD THIS IS A TEST MESSAGE FOR', k1, k2))
+
+    # DES
+    from symmetric.des import des_encrypt, generate_key as des_gen
+    des_key = des_gen()
+    bench('DES encrypt (16 bytes)', 'Symmetric', '56-bit', 'Broken — brute-forceable',
+          lambda: des_encrypt(pt_short, des_key))
+    bench('DES encrypt (1 KB)', 'Symmetric', '56-bit', 'Broken — brute-forceable',
+          lambda: des_encrypt(pt_long, des_key))
+
+    # AES-128
+    from symmetric.aes import aes_encrypt, generate_key as aes_gen
+    aes128 = aes_gen(128)
+    bench('AES-128 encrypt (16 bytes)', 'Symmetric', '128-bit', 'Secure (~2¹²⁸)',
+          lambda: aes_encrypt(pt_short, aes128))
+    bench('AES-128 encrypt (1 KB)', 'Symmetric', '128-bit', 'Secure (~2¹²⁸)',
+          lambda: aes_encrypt(pt_long, aes128))
+
+    # AES-256
+    aes256 = aes_gen(256)
+    bench('AES-256 encrypt (16 bytes)', 'Symmetric', '256-bit', 'Very secure (~2²⁵⁶)',
+          lambda: aes_encrypt(pt_short, aes256))
+    bench('AES-256 encrypt (1 KB)', 'Symmetric', '256-bit', 'Very secure (~2²⁵⁶)',
+          lambda: aes_encrypt(pt_long, aes256))
+
+    # RSA — key gen is slow, only bench encrypt/decrypt
+    from public_key.rsa import generate_rsa_keys, rsa_encrypt, rsa_decrypt
+    rsa512  = generate_rsa_keys(512)
+    rsa1024 = generate_rsa_keys(1024)
+
+    ct512  = rsa_encrypt('HI', rsa512['n'],  rsa512['e'])
+    ct1024 = rsa_encrypt('HI', rsa1024['n'], rsa1024['e'])
+
+    bench('RSA-512 encrypt', 'Public-Key', '512-bit', 'Deprecated (<80-bit security)',
+          lambda: rsa_encrypt('HI', rsa512['n'], rsa512['e']))
+    bench('RSA-512 decrypt', 'Public-Key', '512-bit', 'Deprecated (<80-bit security)',
+          lambda: rsa_decrypt(ct512, rsa512['n'], rsa512['d']))
+    bench('RSA-1024 encrypt', 'Public-Key', '1024-bit', 'Borderline (~80-bit security)',
+          lambda: rsa_encrypt('HI', rsa1024['n'], rsa1024['e']))
+    bench('RSA-1024 decrypt', 'Public-Key', '1024-bit', 'Borderline (~80-bit security)',
+          lambda: rsa_decrypt(ct1024, rsa1024['n'], rsa1024['d']))
+
+    # ECC key gen
+    from public_key.ecc import EllipticCurve
+    curve = EllipticCurve(23, 1, 1)
+    G = curve.point(3, 10)
+    bench('ECC scalar multiply (mod 23)', 'Public-Key', '~23-bit field', 'Demo only — too small for real use',
+          lambda: curve.scalar_mul(12, G, 27))
+
+    return jsonify({'results': results})
 
 
 @app.route('/')
 def index():
     return render_template('index.html')
-
 
 if __name__ == '__main__':
     app.run(debug=True, port=5050)

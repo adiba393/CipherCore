@@ -5,11 +5,8 @@ Supports AES-128 (10 rounds), AES-192 (12 rounds), AES-256 (14 rounds).
 
 import os
 
-# ─────────────────────────────────────────────
 #  AES CONSTANTS
-# ─────────────────────────────────────────────
 
-# AES S-Box
 SBOX = [
     0x63,0x7C,0x77,0x7B,0xF2,0x6B,0x6F,0xC5,0x30,0x01,0x67,0x2B,0xFE,0xD7,0xAB,0x76,
     0xCA,0x82,0xC9,0x7D,0xFA,0x59,0x47,0xF0,0xAD,0xD4,0xA2,0xAF,0x9C,0xA4,0x72,0xC0,
@@ -29,20 +26,15 @@ SBOX = [
     0x8C,0xA1,0x89,0x0D,0xBF,0xE6,0x42,0x68,0x41,0x99,0x2D,0x0F,0xB0,0x54,0xBB,0x16,
 ]
 
-# Inverse S-Box
 INV_SBOX = [0] * 256
 for i, v in enumerate(SBOX):
     INV_SBOX[v] = i
 
-# Round constants
 RCON = [0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80,0x1B,0x36,
         0x6C,0xD8,0xAB,0x4D,0x9A,0x2F,0x5E,0xBC,0x63,0xC6,
         0x97,0x35,0x6A,0xD4,0xB3,0x7D,0xFA,0xEF,0xC5,0x91]
 
-
-# ─────────────────────────────────────────────
 #  GF(2^8) ARITHMETIC
-# ─────────────────────────────────────────────
 
 def gmul(a: int, b: int) -> int:
     """Multiply two bytes in GF(2^8) with AES irreducible polynomial."""
@@ -57,10 +49,7 @@ def gmul(a: int, b: int) -> int:
         b >>= 1
     return p
 
-
-# ─────────────────────────────────────────────
 #  KEY EXPANSION
-# ─────────────────────────────────────────────
 
 def key_expansion(key: bytes) -> list[list[int]]:
     """Expand key into round keys. Returns list of 4-byte words."""
@@ -86,7 +75,6 @@ def key_expansion(key: bytes) -> list[list[int]]:
         w.append([a ^ b for a, b in zip(w[i-nk], temp)])
     return w
 
-
 def get_round_key(w: list[list[int]], round_num: int) -> list[list[int]]:
     """Get 4x4 state matrix for a given round."""
     start = round_num * 4
@@ -97,10 +85,7 @@ def get_round_key(w: list[list[int]], round_num: int) -> list[list[int]]:
             state[r][c] = words[c][r]
     return state
 
-
-# ─────────────────────────────────────────────
 #  AES OPERATIONS
-# ─────────────────────────────────────────────
 
 def bytes_to_state(data: bytes) -> list[list[int]]:
     state = [[0]*4 for _ in range(4)]
@@ -109,7 +94,6 @@ def bytes_to_state(data: bytes) -> list[list[int]]:
             state[r][c] = data[r + 4*c]
     return state
 
-
 def state_to_bytes(state: list[list[int]]) -> bytes:
     out = []
     for c in range(4):
@@ -117,26 +101,20 @@ def state_to_bytes(state: list[list[int]]) -> bytes:
             out.append(state[r][c])
     return bytes(out)
 
-
 def add_round_key(state: list[list[int]], rk: list[list[int]]) -> list[list[int]]:
     return [[state[r][c] ^ rk[r][c] for c in range(4)] for r in range(4)]
-
 
 def sub_bytes(state: list[list[int]]) -> list[list[int]]:
     return [[SBOX[state[r][c]] for c in range(4)] for r in range(4)]
 
-
 def inv_sub_bytes(state: list[list[int]]) -> list[list[int]]:
     return [[INV_SBOX[state[r][c]] for c in range(4)] for r in range(4)]
-
 
 def shift_rows(state: list[list[int]]) -> list[list[int]]:
     return [state[r][r:] + state[r][:r] for r in range(4)]
 
-
 def inv_shift_rows(state: list[list[int]]) -> list[list[int]]:
     return [state[r][-r:] + state[r][:-r] if r else state[r] for r in range(4)]
-
 
 def mix_columns(state: list[list[int]]) -> list[list[int]]:
     new_state = [[0]*4 for _ in range(4)]
@@ -148,7 +126,6 @@ def mix_columns(state: list[list[int]]) -> list[list[int]]:
         new_state[3][c] = gmul(col[0],3)^col[1]^col[2]^gmul(col[3],2)
     return new_state
 
-
 def inv_mix_columns(state: list[list[int]]) -> list[list[int]]:
     new_state = [[0]*4 for _ in range(4)]
     for c in range(4):
@@ -159,10 +136,7 @@ def inv_mix_columns(state: list[list[int]]) -> list[list[int]]:
         new_state[3][c] = gmul(col[0],0x0b)^gmul(col[1],0x0d)^gmul(col[2],0x09)^gmul(col[3],0x0e)
     return new_state
 
-
-# ─────────────────────────────────────────────
 #  AES BLOCK ENCRYPT / DECRYPT
-# ─────────────────────────────────────────────
 
 def aes_encrypt_block(block: bytes, w: list[list[int]], nr: int) -> bytes:
     state = bytes_to_state(block)
@@ -177,7 +151,6 @@ def aes_encrypt_block(block: bytes, w: list[list[int]], nr: int) -> bytes:
     state = add_round_key(state, get_round_key(w, nr))
     return state_to_bytes(state)
 
-
 def aes_decrypt_block(block: bytes, w: list[list[int]], nr: int) -> bytes:
     state = bytes_to_state(block)
     state = add_round_key(state, get_round_key(w, nr))
@@ -191,23 +164,17 @@ def aes_decrypt_block(block: bytes, w: list[list[int]], nr: int) -> bytes:
     state = add_round_key(state, get_round_key(w, 0))
     return state_to_bytes(state)
 
-
-# ─────────────────────────────────────────────
 #  PADDING & FULL ENCRYPT/DECRYPT
-# ─────────────────────────────────────────────
 
 def pad(data: bytes) -> bytes:
     pad_len = 16 - (len(data) % 16)
     return data + bytes([pad_len] * pad_len)
 
-
 def unpad(data: bytes) -> bytes:
     return data[:-data[-1]]
 
-
 def get_nr(key: bytes) -> int:
     return {16: 10, 24: 12, 32: 14}[len(key)]
-
 
 def aes_encrypt(plaintext: bytes, key: bytes) -> bytes:
     w = key_expansion(key)
@@ -218,7 +185,6 @@ def aes_encrypt(plaintext: bytes, key: bytes) -> bytes:
         ct += aes_encrypt_block(padded[i:i+16], w, nr)
     return ct
 
-
 def aes_decrypt(ciphertext: bytes, key: bytes) -> bytes:
     w = key_expansion(key)
     nr = get_nr(key)
@@ -227,14 +193,10 @@ def aes_decrypt(ciphertext: bytes, key: bytes) -> bytes:
         pt += aes_decrypt_block(ciphertext[i:i+16], w, nr)
     return unpad(pt)
 
-
 def generate_key(bits: int = 128) -> bytes:
     return os.urandom(bits // 8)
 
-
-# ─────────────────────────────────────────────
 #  CLI
-# ─────────────────────────────────────────────
 
 def _print_round_keys(key: bytes):
     w = key_expansion(key)
@@ -247,7 +209,6 @@ def _print_round_keys(key: bytes):
         rk_hex = ''.join(f'{rk[r][c]:02X}' for c in range(4) for r in range(4))
         print(f"  RK[{rnd:2d}]: {rk_hex}")
     print("  " + "-"*50)
-
 
 def _get_key(bits: int) -> bytes:
     """Prompt user for a key or auto-generate one."""
@@ -270,7 +231,6 @@ def _get_key(bits: int) -> bytes:
         key = generate_key(bits)
         print(f"  [Auto-generated key]: {key.hex().upper()}")
         return key
-
 
 def run():
     """Interactive CLI for AES."""

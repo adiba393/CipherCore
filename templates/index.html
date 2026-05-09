@@ -667,6 +667,180 @@
     letter-spacing: .05em;
   }
 
+  /* ── ECDH ANIMATION ── */
+  .ecdh-anim-wrap { padding: .5rem 0; }
+
+  /* Step indicator bar */
+  .anim-steps-bar {
+    display: flex; align-items: center; justify-content: center;
+    gap: 0; margin-bottom: 1.5rem;
+  }
+  .anim-step-dot {
+    width: 30px; height: 30px; border-radius: 50%;
+    border: 1px solid var(--border); background: var(--surface);
+    color: #999; font-size: 11px; font-weight: 600;
+    display: flex; align-items: center; justify-content: center;
+    transition: all .3s; flex-shrink: 0; font-family: var(--mono);
+  }
+  .anim-step-dot.active {
+    background: var(--accent); border-color: var(--accent);
+    color: #fff; box-shadow: 0 0 10px rgba(176,22,82,.35);
+  }
+  .anim-step-dot.done {
+    background: rgba(176,22,82,.12); border-color: var(--accent2);
+    color: var(--accent2);
+  }
+  .anim-step-line { width: 52px; height: 1px; background: var(--border); flex-shrink: 0; }
+
+  /* Scenes */
+  .anim-scene { display: none; animation: ecdhFadeIn .35s ease; }
+  .anim-scene.active { display: block; }
+  @keyframes ecdhFadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+
+  .scene-title {
+    text-align: center; font-size: .78rem; letter-spacing: .1em;
+    color: var(--accent2); text-transform: uppercase; margin-bottom: 1.2rem;
+    font-family: var(--mono);
+  }
+
+  /* Stage layout */
+  .scene-stage {
+    display: flex; align-items: flex-start;
+    justify-content: space-between; gap: 0;
+  }
+  .figure-col {
+    display: flex; flex-direction: column;
+    align-items: center; gap: 8px; width: 175px;
+  }
+  .fig-name {
+    font-size: .72rem; font-weight: 600; letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+  .fig-name.alice-col { color: #7c3aed; }
+  .fig-name.bob-col   { color: #0d9488; }
+
+  .fig-info {
+    background: rgba(176,22,82,.04); border: 1px solid var(--border);
+    border-radius: 6px; padding: 8px 12px; font-size: .75rem;
+    line-height: 1.7; font-family: var(--mono); color: var(--text);
+    width: 100%; box-sizing: border-box; text-align: center;
+  }
+  .info-row { margin: 1px 0; }
+  .compute-ans { color: var(--accent); font-weight: 600; margin-top: 4px; }
+  .mod-tag {
+    font-size: .65rem; background: rgba(176,22,82,.1);
+    color: var(--accent); border-radius: 4px; padding: 1px 5px;
+    margin-left: 4px; vertical-align: middle;
+  }
+
+  /* Middle column */
+  .scene-mid {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 10px; padding-top: 52px;
+  }
+  .curve-badge, .g-badge {
+    font-size: .68rem; font-family: var(--mono);
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 5px; padding: 4px 10px; color: #888;
+    text-align: center;
+  }
+
+  /* Message fly animation */
+  .exchange-mid { gap: 14px; }
+  .msg-fly {
+    display: flex; align-items: center; gap: 6px;
+    font-size: .72rem; font-family: var(--mono);
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 5px; padding: 5px 10px; color: var(--text);
+    opacity: 0; transition: opacity .5s ease, transform .5s ease;
+  }
+  .msg-right { transform: translateX(-20px); transform-origin: left center; }
+  .msg-left  { transform: translateX(20px);  transform-origin: right center; }
+  .msg-fly.fly { opacity: 1; transform: translateX(0); }
+  .msg-envelope {
+    background: rgba(176,22,82,.08); border-radius: 4px;
+    padding: 2px 7px; font-size: .7rem;
+  }
+  .msg-arrow { color: var(--accent2); font-size: 1rem; }
+
+  /* Lock animation */
+  .lock-anim {
+    font-size: 2rem; transition: transform .4s ease;
+    transform: scale(0.8); opacity: .4;
+  }
+  .lock-anim.pulse {
+    animation: lockPop .5s ease forwards;
+  }
+  @keyframes lockPop {
+    0%   { transform: scale(0.8); opacity: .4; }
+    60%  { transform: scale(1.25); opacity: 1; }
+    100% { transform: scale(1);    opacity: 1; }
+  }
+
+  /* Shared secret reveal */
+  .shared-reveal-anim {
+    text-align: center; padding: 1.5rem;
+    animation: revealPop .5s ease;
+  }
+  @keyframes revealPop {
+    from { transform: scale(.9); opacity: 0; }
+    to   { transform: scale(1);  opacity: 1; }
+  }
+  .shared-icon { font-size: 2.5rem; margin-bottom: .5rem; }
+  .shared-point-lbl {
+    font-family: var(--mono); font-size: 1.1rem;
+    color: var(--text); margin-bottom: .25rem;
+  }
+  .shared-key-lbl {
+    font-size: .85rem; color: var(--accent); font-weight: 600;
+    margin-bottom: .2rem;
+  }
+  .shared-key-val { font-family: var(--mono); font-size: 1.2rem; }
+  .shared-sub-lbl { font-size: .7rem; color: #999; font-family: var(--mono); }
+
+  /* Navigation */
+  .anim-nav {
+    display: flex; align-items: center; justify-content: center;
+    gap: 1rem; margin-top: 1.25rem;
+  }
+  .anim-counter { font-size: .75rem; color: #888; min-width: 36px; text-align: center; }
+
+  /* SVG stick figures */
+  .stick-fig { display: flex; flex-direction: column; align-items: center; gap: 0; }
+  .sf-head {
+    width: 30px; height: 30px; border-radius: 50%;
+    border: 2px solid currentColor; background: transparent;
+  }
+  .alice-fig { color: #7c3aed; }
+  .alice-fig .sf-head { background: rgba(124,58,237,.08); }
+  .alice-fig .sf-hair {
+    width: 28px; height: 7px; border-radius: 0 0 14px 14px;
+    background: #7c3aed; opacity: .6; margin-top: -2px;
+  }
+  .bob-fig { color: #0d9488; }
+  .bob-fig .sf-head { background: rgba(13,148,136,.08); }
+  .sf-body {
+    width: 2px; height: 32px; background: currentColor;
+    margin: 2px 0; position: relative;
+  }
+  .bob-body::before {
+    content: ''; position: absolute; left: -12px; top: 6px;
+    width: 26px; height: 2px; background: currentColor; border-radius: 1px;
+  }
+  .alice-fig .sf-body::before {
+    content: ''; position: absolute; left: -13px; top: 6px;
+    width: 28px; height: 2px; background: currentColor; border-radius: 1px;
+  }
+  .sf-legs {
+    display: flex; gap: 8px; margin-top: 0;
+  }
+  .sf-leg {
+    width: 2px; height: 28px; background: currentColor;
+    border-radius: 1px; transform: rotate(12deg);
+  }
+  .sf-leg:last-child { transform: rotate(-12deg); }
+
 </style>
 </head>
 <body>
@@ -674,6 +848,7 @@
 <header>
   <div class="logo" onclick="showPage('home')" style="cursor:pointer">CIPHER<span>CORE</span></div>
   <div id="navPageName" class="nav-page-name"></div>
+  <button class="analysis-nav-btn" onclick="showPage('analysis')">⚡ Analysis</button>
   <div class="header-btns" id="headerBtns" style="display:none">
     <button class="home-btn" onclick="goBack()">← Back</button>
     <button class="home-btn" onclick="showPage('home')">⌂ Home</button>
@@ -969,27 +1144,201 @@
 <!-- ══════════════ ECC ══════════════ -->
 <div class="page" id="page-ecc">
   <div class="page-title">ECC — Elliptic Curve Cryptography</div>
-  
-  <div class="panel" style="max-width:480px">
-    <div class="panel-title">Curve Selection</div>
-    <label>Predefined Curves</label>
-    <select id="ecc-curve">
-      <option value="tiny">Tiny: y²=x³+x+1 (mod 23) — n=28, best for listing all points</option>
-      <option value="p17">Textbook: y²=x³+2x+2 (mod 17) — n=19</option>
-      <option value="small">Small: y²=x³+2x+3 (mod 97) — n=5</option>
-    </select>
-    <div class="btn-row">
-      <button class="btn btn-primary" onclick="eccListPoints()">List All Points</button>
-      <button class="btn btn-green" onclick="eccKeygen()">Generate Key Pair</button>
-      <button class="btn btn-orange" onclick="eccECDH()">ECDH Exchange</button>
+
+  <div class="toggle-group" style="max-width:380px">
+    <button class="active" onclick="eccSetTab('keygen',this)">Key Generation</button>
+    <button onclick="eccSetTab('ecdh',this)">ECDH Key Exchange</button>
+  </div>
+
+  <!-- ── KEY GENERATION TAB ── -->
+  <div id="ecc-tab-keygen">
+    <div class="grid-2" style="align-items:start">
+
+      <!-- LEFT: inputs -->
+      <div>
+        <!-- Step 1 -->
+        <div class="panel ecc-step-card" id="ecc-step1">
+          <div class="panel-title">Step 1 — Define the Curve</div>
+          <p class="ecc-step-desc">Enter parameters for <em>y² = x³ + ax + b (mod p)</em></p>
+          <div class="grid-3" style="margin-top:.75rem">
+            <div><label>a</label><input type="number" id="ecc-a" value="1" min="0"></div>
+            <div><label>b</label><input type="number" id="ecc-b" value="1" min="0"></div>
+            <div><label>p (prime)</label><input type="number" id="ecc-p" value="23" min="2"></div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="eccFindPoints()">Find All Points</button>
+            <button class="btn btn-ghost" onclick="eccReset()">Reset All</button>
+            <button class="btn btn-ghost" onclick="eccClearOutputs()">Clear Output</button>
+          </div>
+          <div id="ecc-step1-out" style="margin-top:.75rem"></div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="panel ecc-step-card ecc-step-locked" id="ecc-step2">
+          <div class="panel-title">Step 2 — Choose Generator G</div>
+          <p class="ecc-step-desc">Click a point above or enter coordinates manually.</p>
+          <div class="grid-2" style="margin-top:.75rem">
+            <div><label>G.x</label><input type="number" id="ecc-Gx" placeholder="x coordinate" min="0"></div>
+            <div><label>G.y</label><input type="number" id="ecc-Gy" placeholder="y coordinate" min="0"></div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="eccSetGenerator()">Set Generator & Compute Order</button>
+          </div>
+          <div id="ecc-step2-out" style="margin-top:.75rem"></div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="panel ecc-step-card ecc-step-locked" id="ecc-step3">
+          <div class="panel-title">Step 3 — Generate Key Pair</div>
+          <p class="ecc-step-desc">Choose private key <em>d</em>, or leave blank to auto-generate. Q = d×G.</p>
+          <div style="max-width:220px;margin-top:.75rem">
+            <label>Private key d (1 to n−1)</label>
+            <input type="number" id="ecc-d" placeholder="auto-generate if blank" min="1">
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="eccKeygen()">Generate Key Pair</button>
+            <button class="btn btn-ghost" onclick="document.getElementById('ecc-step3-out').innerHTML=''">Clear</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: output -->
+      <div class="panel" id="ecc-keygen-output-panel" style="min-height:200px">
+        <div class="panel-title">Output</div>
+        <div id="ecc-step3-out">
+          <div style="color:var(--text-dim);font-family:var(--mono);font-size:.8rem">Complete all 3 steps to see key pair output.</div>
+        </div>
+      </div>
+
     </div>
   </div>
 
-  <div id="ecc-output-area" style="margin-top:1rem">
-    <div style="color:var(--text-dim);font-family:var(--mono);font-size:.8rem">// Select a curve and choose an operation</div>
+  <!-- ── ECDH TAB ── -->
+  <div id="ecc-tab-ecdh" style="display:none">
+    <div class="grid-2" style="align-items:start">
+    <!-- LEFT col -->
+    <div>
+
+    <!-- Curve setup (reuse or fresh) -->
+    <div class="panel ecc-step-card" id="ecdh-step1">
+      <div class="panel-title">Step 1 — Curve & Generator</div>
+      <div id="ecdh-step1-out"></div>
+      <!-- shown only when no keygen state available -->
+      <div id="ecdh-manual-form" style="display:none">
+        <p class="ecc-step-desc" style="margin-bottom:.75rem">No curve found from Key Generation. Enter parameters to find all valid points, then pick G.</p>
+        <div class="grid-3">
+          <div><label>a</label><input type="number" id="ecdh-a" value="1" min="0"></div>
+          <div><label>b</label><input type="number" id="ecdh-b" value="1" min="0"></div>
+          <div><label>p (prime)</label><input type="number" id="ecdh-p" value="23" min="2"></div>
+        </div>
+        <div class="btn-row" style="margin-top:.75rem">
+          <button class="btn btn-primary" onclick="ecdhFindPoints()">Find All Points</button>
+        </div>
+        <div id="ecdh-points-out" style="margin-top:.75rem"></div>
+        <!-- G picker — shown after points are found -->
+        <div id="ecdh-g-picker" style="display:none;margin-top:.75rem">
+          <div class="grid-2">
+            <div><label>G.x</label><input type="number" id="ecdh-Gx" min="0" placeholder="click a point above"></div>
+            <div><label>G.y</label><input type="number" id="ecdh-Gy" min="0" placeholder="click a point above"></div>
+          </div>
+          <div class="btn-row" style="margin-top:.5rem">
+            <button class="btn btn-primary" onclick="ecdhSetupManual()">Confirm G</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alice & Bob private keys -->
+    <div class="panel ecc-step-card ecc-step-locked" id="ecdh-step2">
+      <div class="panel-title">Step 2 — Alice & Bob Choose Private Keys</div>
+      <p class="ecc-step-desc">Each chooses a secret integer. Leave blank to auto-generate.</p>
+      <div class="grid-2" style="margin-top:.75rem">
+        <div>
+          <label>Alice's private key a</label>
+          <input type="number" id="ecdh-alice" placeholder="auto" min="1">
+        </div>
+        <div>
+          <label>Bob's private key b</label>
+          <input type="number" id="ecdh-bob" placeholder="auto" min="1">
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="ecdhRun()">Run ECDH Exchange</button>
+        <button class="btn btn-ghost" onclick="eccClearECDH()">Clear Results</button>
+        <button class="btn btn-ghost" onclick="eccResetECDH()">Reset All</button>
+      </div>
+    </div>
+
+    </div><!-- end LEFT col -->
+    </div><!-- end grid-2 -->
+
+    <!-- Full-width animation panel -->
+    <div class="panel ecc-step-card ecc-step-locked" id="ecdh-step3" style="margin-top:1rem">
+      <div class="panel-title">Step 3 — Key Exchange Animation</div>
+      <div id="ecdh-step3-out">
+        <div style="color:var(--text-dim);font-family:var(--mono);font-size:.8rem">Run the exchange above to see the animated step-by-step result.</div>
+      </div>
+    </div>
   </div>
 </div>
 
+<!-- ══════════════ ANALYSIS ══════════════ -->
+<div class="page" id="page-analysis">
+  <div class="page-title">Security & Performance Analysis</div>
+
+  <div class="grid-2" style="margin-bottom:1.25rem">
+    <div class="panel">
+      <div class="panel-title">Live Benchmark</div>
+      <p style="font-size:.88rem;color:var(--text-dim);line-height:1.6;margin-bottom:1rem">
+        Runs each algorithm 5 times on real input and measures average execution time.
+        RSA key generation is excluded from timing as it involves probabilistic primality testing.
+      </p>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="runBenchBtn" onclick="runBenchmark()">Run Analysis</button>
+      </div>
+      <div id="bench-status" style="margin-top:.75rem;font-family:var(--mono);font-size:.78rem;color:var(--text-dim)"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">About the Benchmark</div>
+      <div style="font-family:var(--mono);font-size:.78rem;color:var(--text-dim);line-height:1.9">
+        <div><span style="color:var(--accent)">Input sizes:</span> 16 bytes and 1 KB plaintext</div>
+        <div><span style="color:var(--accent)">Rounds:</span> 5 iterations per algorithm, average taken</div>
+        <div><span style="color:var(--accent)">Metric:</span> Wall-clock time in milliseconds</div>
+        <div><span style="color:var(--accent)">Platform:</span> Pure Python, no native crypto libs</div>
+        <div style="margin-top:.5rem;color:var(--text-dim);font-size:.72rem">
+          Note: results reflect Python overhead, not hardware-optimised performance.
+          Real-world implementations (OpenSSL, etc.) are orders of magnitude faster.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="bench-results" style="display:none">
+
+    <!-- Performance chart -->
+    <div class="panel" style="margin-bottom:1.25rem">
+      <div class="panel-title">Execution Time (ms) — Log Scale</div>
+      <div id="bench-chart" style="padding:.5rem 0"></div>
+    </div>
+
+    <!-- Results table -->
+    <div class="panel" style="margin-bottom:1.25rem">
+      <div class="panel-title">Full Results</div>
+      <div style="overflow-x:auto">
+        <table class="bench-table" id="bench-table"></table>
+      </div>
+    </div>
+
+    <!-- Security comparison -->
+    <div class="panel">
+      <div class="panel-title">Security Comparison</div>
+      <div style="overflow-x:auto">
+        <table class="bench-table" id="sec-table"></table>
+      </div>
+    </div>
+
+  </div>
+</div>
 </main>
 
 <script>
@@ -1010,7 +1359,8 @@ const PAGE_NAMES = {
   des: 'DES',
   aes: 'AES',
   rsa: 'RSA',
-  ecc: 'ECC'
+  ecc: 'ECC',
+  analysis: 'Security & Performance Analysis'
 };
 
 let pageHistory = [];
@@ -1120,17 +1470,41 @@ async function runSubstitution() {
   if (data.error) { out.innerHTML = errBox(data.error); return; }
 
   if (subMode === 'bruteforce') {
+    const warningHTML = data.warning
+      ? `<div class="error-msg" style="margin-bottom:.75rem">⚠ ${data.warning}</div>` : '';
+    const methodLabel = data.method === 'hill_climbing'
+      ? `Hill climbing completed (${data.iterations} iterations)`
+      : 'Frequency mapping only (hill climbing skipped)';
+
+    const phase1 = data.phase1;
+    const phase2 = data.phase2_candidates || [];
+    const best = phase2.length > 0 ? phase2[0] : phase1;
+
     out.innerHTML = `
-      <div class="output-label">Brute Force Attack — Top ${data.candidates.length} Candidates</div>
+      ${warningHTML}
       <div style="font-family:var(--mono);font-size:.72rem;color:var(--text-dim);margin-bottom:.75rem">
-        Strategy: frequency mapping + hill climbing (26! keyspace, intelligent search)
+        Strategy: ${methodLabel} — 26! ≈ 4×10²⁶ keyspace
       </div>
-      ${data.candidates.map(c => `
+
+      <div class="output-label" style="color:var(--accent);margin-bottom:.4rem">Phase 1 — Frequency Mapping (instant)</div>
+      <div class="bf-candidate" style="margin-bottom:.75rem">
+        <div class="bf-rank">Score: ${phase1.score}</div>
+        <div class="bf-key">Key: ${phase1.key}</div>
+        <div class="bf-text">${phase1.text}</div>
+      </div>
+
+      ${phase2.length > 0 ? `
+      <div class="output-label" style="color:var(--accent2);margin-bottom:.4rem">Phase 2 — Hill Climbing (top ${phase2.length} results)</div>
+      ${phase2.map((c,i) => `
         <div class="bf-candidate">
-          <div class="bf-rank">Rank #${c.rank} — fitness score: ${c.score}</div>
+          <div class="bf-rank">Rank #${i+1} — score: ${c.score}</div>
           <div class="bf-key">Key: ${c.key}</div>
           <div class="bf-text">${c.text}</div>
-        </div>`).join('')}`;
+        </div>`).join('')}` : ''}
+
+      <div style="font-family:var(--mono);font-size:.7rem;color:var(--text-dim);margin-top:.75rem">
+        Higher score = closer match to English. Works best on 100+ character texts.
+      </div>`;
   } else {
     const label = subMode === 'encrypt' ? 'Output (Encryption)' : 'Output (Decryption)';
     out.innerHTML = `
@@ -1316,19 +1690,19 @@ async function rsaGenerate() {
   rsaKeys = data;
 
   let factHTML = '';
-  if (data.factorization) {
+  if (data.factorization && data.factorization.success) {
     const f = data.factorization;
     factHTML = `<div class="key-card" style="border-color:rgba(176,22,82,.3)">
-      <div class="key-card-title" style="color:var(--accent3)">⚡ Factorization Attack</div>
+      <div class="key-card-title" style="color:var(--accent3)">⚡ Factorization Attack — SUCCESS</div>
       <div class="key-field"><span class="kf-label">p =</span><span class="kf-value">${f.p}</span></div>
       <div class="key-field"><span class="kf-label">q =</span><span class="kf-value">${f.q}</span></div>
       <div class="key-field"><span class="kf-label">d recovered =</span><span class="kf-value">${f.d_recovered}</span></div>
-      <div style="margin-top:.4rem;font-family:var(--mono);font-size:.78rem;color:var(--success)">${f.match ? '✓ Private key recovered successfully!' : '✗ Keys differ'}</div>
+      <div style="margin-top:.4rem;font-family:var(--mono);font-size:.78rem;color:var(--success)">${f.match ? '✓ Recovered private key matches original!' : '✗ Keys differ'}</div>
     </div>`;
-  } else {
-    factHTML = `<div class="key-card">
-      <div class="key-card-title" style="color:var(--text-dim)">Factorization Attack</div>
-      <div style="font-family:var(--mono);font-size:.78rem;color:var(--text-dim)">Not feasible for ${rsaBits}-bit keys. Use 64-bit to demo.</div>
+  } else if (data.factorization && !data.factorization.success) {
+    factHTML = `<div class="key-card" style="border-color:rgba(160,128,48,.3)">
+      <div class="key-card-title" style="color:#a08030">⚡ Factorization Attack — FAILED</div>
+      <div style="font-family:var(--mono);font-size:.75rem;color:var(--text-dim);line-height:1.6">${data.factorization.message}</div>
     </div>`;
   }
 
@@ -1390,80 +1764,578 @@ async function rsaDecrypt() {
     </div>`;
 }
 
-// ─── ECC ─────────────────────────────────────────────
-async function eccListPoints() {
-  const curve = document.getElementById('ecc-curve').value;
-  const out = document.getElementById('ecc-output-area');
-  out.innerHTML = `<span class="spinner"></span><span style="font-family:var(--mono);font-size:.8rem;color:var(--text-dim)">Computing points...</span>`;
-  const data = await api('ecc', { action: 'list_points', curve });
+// ─── ECC STATE ───────────────────────────────────────
+let eccState = { p:23, a:1, b:1, points:[], Gx:null, Gy:null, n:null };
+let ecdhState = { p:23, a:1, b:1, Gx:null, Gy:null, n:null };
+
+function eccSetTab(tab, btn) {
+  document.querySelectorAll('#page-ecc .toggle-group:first-of-type button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('ecc-tab-keygen').style.display = tab === 'keygen' ? 'block' : 'none';
+  document.getElementById('ecc-tab-ecdh').style.display   = tab === 'ecdh'   ? 'block' : 'none';
+  if (tab === 'ecdh') eccInitECDH();
+}
+
+function eccInitECDH() {
+  const out = document.getElementById('ecdh-step1-out');
+  const form = document.getElementById('ecdh-manual-form');
+
+  if (eccState.Gx !== null && eccState.Gx !== undefined && eccState.n) {
+    // Curve already set up from Key Gen — use it directly
+    ecdhState = { p: eccState.p, a: eccState.a, b: eccState.b, Gx: eccState.Gx, Gy: eccState.Gy, n: eccState.n };
+    form.style.display = 'none';
+    out.innerHTML = `
+      <div style="background:rgba(26,122,74,.06);border:1px solid rgba(26,122,74,.2);border-radius:6px;padding:.9rem 1rem;font-family:var(--mono);font-size:.82rem">
+        <div style="color:var(--success);font-weight:700;margin-bottom:.4rem">✓ Curve loaded from Key Generation tab</div>
+        <div><span style="color:var(--text-dim)">Curve: </span><span style="color:var(--accent)">y² = x³ + ${eccState.a}x + ${eccState.b} (mod ${eccState.p})</span></div>
+        <div><span style="color:var(--text-dim)">G = </span><span style="color:var(--accent)">(${eccState.Gx}, ${eccState.Gy})</span>
+             <span style="color:var(--text-dim);margin-left:1rem">n = </span><span style="color:var(--accent2)">${eccState.n}</span></div>
+      </div>`;
+    // Unlock steps 2 & 3
+    document.getElementById('ecdh-step2').classList.remove('ecc-step-locked');
+    document.getElementById('ecdh-step2').classList.add('unlocked');
+    document.getElementById('ecdh-step3').classList.remove('ecc-step-locked');
+    document.getElementById('ecdh-step3').classList.add('unlocked');
+  } else {
+    // No keygen state — show manual form
+    form.style.display = 'block';
+    out.innerHTML = '';
+  }
+}
+
+async function ecdhFindPoints() {
+  const p = parseInt(document.getElementById('ecdh-p').value);
+  const a = parseInt(document.getElementById('ecdh-a').value);
+  const b = parseInt(document.getElementById('ecdh-b').value);
+  const out = document.getElementById('ecdh-points-out');
+  out.innerHTML = `<span class="spinner"></span><span style="font-family:var(--mono);font-size:.8rem;color:var(--text-dim)"> Finding points...</span>`;
+  const data = await api('ecc', { action:'find_points', p, a, b });
   if (data.error) { out.innerHTML = errBox(data.error); return; }
+  if (data.points.length === 0) {
+    out.innerHTML = errBox('No valid points found. Try different parameters.');
+    return;
+  }
   out.innerHTML = `
-    <div class="panel">
-      <div class="panel-title">All Multiples of G — ${data.curve}</div>
-      <div style="font-family:var(--mono);font-size:.75rem;color:var(--text-dim);margin-bottom:.75rem">G = (${data.G.x}, ${data.G.y})  |  Order n = ${data.n}</div>
-      <div style="max-height:400px;overflow-y:auto">
-        <table class="points-table">
-          <thead><tr><th>k</th><th>kG (x)</th><th>kG (y)</th></tr></thead>
-          <tbody>
-            ${data.points.map(p => `<tr><td>${p.k}G</td><td>${p.x}</td><td>${p.y}</td></tr>`).join('')}
-            <tr><td>${data.n+1}G</td><td colspan="2" style="color:var(--text-dim)">O (point at infinity)</td></tr>
-          </tbody>
-        </table>
-      </div>
+    <div style="font-family:var(--mono);font-size:.78rem;color:var(--text-dim);margin-bottom:.4rem">
+      <span style="color:var(--accent)">${data.curve}</span> — ${data.count} points found. Click one to select as G:
+    </div>
+    <div class="ecc-points-wrap">
+      ${data.points.map(pt =>
+        `<span class="ecc-point-chip" onclick="ecdhSelectG(${pt.x},${pt.y},this)">(${pt.x}, ${pt.y})</span>`
+      ).join('')}
     </div>`;
+  document.getElementById('ecdh-g-picker').style.display = 'block';
+}
+
+function ecdhSelectG(x, y, el) {
+  document.querySelectorAll('#ecdh-points-out .ecc-point-chip').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('ecdh-Gx').value = x;
+  document.getElementById('ecdh-Gy').value = y;
+}
+
+async function ecdhSetupManual() {
+  const p  = parseInt(document.getElementById('ecdh-p').value);
+  const a  = parseInt(document.getElementById('ecdh-a').value);
+  const b  = parseInt(document.getElementById('ecdh-b').value);
+  const Gx = parseInt(document.getElementById('ecdh-Gx').value);
+  const Gy = parseInt(document.getElementById('ecdh-Gy').value);
+  if (isNaN(Gx) || isNaN(Gy)) {
+    document.getElementById('ecdh-points-out').innerHTML += errBox('Please select or enter a generator point G.');
+    return;
+  }
+  const out = document.getElementById('ecdh-step1-out');
+  const form = document.getElementById('ecdh-manual-form');
+  out.innerHTML = `<span class="spinner"></span>`;
+  const data = await api('ecc', { action:'set_generator', p, a, b, Gx, Gy });
+  if (data.error) { out.innerHTML = errBox(data.error); form.style.display = 'block'; return; }
+  ecdhState = { p, a, b, Gx, Gy, n: data.n };
+  form.style.display = 'none';
+  out.innerHTML = `
+    <div style="background:rgba(26,122,74,.06);border:1px solid rgba(26,122,74,.2);border-radius:6px;padding:.9rem 1rem;font-family:var(--mono);font-size:.82rem">
+      <div style="color:var(--success);font-weight:700;margin-bottom:.4rem">✓ Curve confirmed</div>
+      <div><span style="color:var(--text-dim)">Curve: </span><span style="color:var(--accent)">y² = x³ + ${a}x + ${b} (mod ${p})</span></div>
+      <div><span style="color:var(--text-dim)">G = </span><span style="color:var(--accent)">(${Gx}, ${Gy})</span>
+           <span style="color:var(--text-dim);margin-left:1rem">n = </span><span style="color:var(--accent2)">${data.n}</span></div>
+    </div>`;
+  document.getElementById('ecdh-step2').classList.remove('ecc-step-locked');
+  document.getElementById('ecdh-step2').classList.add('unlocked');
+  document.getElementById('ecdh-step3').classList.remove('ecc-step-locked');
+  document.getElementById('ecdh-step3').classList.add('unlocked');
+}
+
+function eccUnlock(stepId) {
+  document.getElementById(stepId).classList.remove('ecc-step-locked');
+  document.getElementById(stepId).classList.add('unlocked');
+}
+
+function eccReset() {
+  eccState = { p:23, a:1, b:1, points:[], Gx:null, Gy:null, n:null };
+  ['ecc-step1-out','ecc-step2-out'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.innerHTML = '';
+  });
+  document.getElementById('ecc-step3-out').innerHTML = '<div style="color:var(--text-dim);font-family:var(--mono);font-size:.8rem">Complete all 3 steps to see key pair output.</div>';
+  document.getElementById('ecc-step2').classList.add('ecc-step-locked');
+  document.getElementById('ecc-step3').classList.add('ecc-step-locked');
+  document.getElementById('ecc-Gx').value = '';
+  document.getElementById('ecc-Gy').value = '';
+  document.getElementById('ecc-d').value = '';
+  document.getElementById('ecc-a').value = '1';
+  document.getElementById('ecc-b').value = '1';
+  document.getElementById('ecc-p').value = '23';
+}
+
+function eccClearOutputs() {
+  document.getElementById('ecc-step3-out').innerHTML = '<div style="color:var(--text-dim);font-family:var(--mono);font-size:.8rem">Complete all 3 steps to see key pair output.</div>';
+  document.getElementById('ecc-d').value = '';
+}
+
+function eccResetECDH() {
+  ecdhState = { p:23, a:1, b:1, Gx:null, Gy:null, n:null };
+  document.getElementById('ecdh-step1-out').innerHTML = '';
+  document.getElementById('ecdh-step3-out').innerHTML = '<div style="color:var(--text-dim);font-family:var(--mono);font-size:.8rem">Run the exchange to see results.</div>';
+  document.getElementById('ecdh-alice').value = '';
+  document.getElementById('ecdh-bob').value = '';
+  document.getElementById('ecdh-step2').classList.add('ecc-step-locked');
+  document.getElementById('ecdh-step3').classList.add('ecc-step-locked');
+  // Show manual form again if no keygen state
+  if (eccState.Gx === null) {
+    document.getElementById('ecdh-manual-form').style.display = 'block';
+    document.getElementById('ecdh-points-out').innerHTML = '';
+    document.getElementById('ecdh-g-picker').style.display = 'none';
+  } else {
+    eccInitECDH();
+  }
+}
+
+async function eccFindPoints() {
+  const p = parseInt(document.getElementById('ecc-p').value);
+  const a = parseInt(document.getElementById('ecc-a').value);
+  const b = parseInt(document.getElementById('ecc-b').value);
+  const out = document.getElementById('ecc-step1-out');
+  out.innerHTML = `<span class="spinner"></span><span style="font-family:var(--mono);font-size:.8rem;color:var(--text-dim)">Computing valid points...</span>`;
+  const data = await api('ecc', { action: 'find_points', p, a, b });
+  if (data.error) { out.innerHTML = errBox(data.error); return; }
+  eccState = { p: p, a: a, b: b, points: data.points, Gx: null, Gy: null, n: null };
+
+  out.innerHTML = `
+    <div style="font-family:var(--mono);font-size:.8rem;color:var(--text-dim);margin-bottom:.5rem">
+      Curve: <span style="color:var(--accent)">${data.curve}</span> — ${data.count} valid points found
+    </div>
+    <div style="font-family:var(--mono);font-size:.75rem;color:var(--text-dim);margin-bottom:.4rem">Click a point to use it as generator G:</div>
+    <div class="ecc-points-wrap">
+      ${data.points.map(pt =>
+        `<span class="ecc-point-chip" onclick="eccSelectG(${pt.x},${pt.y},this)">(${pt.x}, ${pt.y})</span>`
+      ).join('')}
+      ${data.points.length === 0 ? '<span style="color:var(--danger);font-family:var(--mono);font-size:.8rem">No valid points found. Try different parameters.</span>' : ''}
+    </div>`;
+
+  if (data.points.length > 0) eccUnlock('ecc-step2');
+}
+
+function eccSelectG(x, y, el) {
+  document.querySelectorAll('.ecc-point-chip').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('ecc-Gx').value = x;
+  document.getElementById('ecc-Gy').value = y;
+}
+
+async function eccSetGenerator() {
+  const Gx = parseInt(document.getElementById('ecc-Gx').value);
+  const Gy = parseInt(document.getElementById('ecc-Gy').value);
+  if (isNaN(Gx) || isNaN(Gy)) {
+    document.getElementById('ecc-step2-out').innerHTML = errBox('Please enter valid x and y coordinates for G.');
+    return;
+  }
+  const out = document.getElementById('ecc-step2-out');
+  out.innerHTML = `<span class="spinner"></span><span style="font-family:var(--mono);font-size:.8rem;color:var(--text-dim)">Computing order and multiples...</span>`;
+  const data = await api('ecc', { action:'set_generator', p:eccState.p, a:eccState.a, b:eccState.b, Gx, Gy });
+  if (data.error) { out.innerHTML = errBox(data.error); return; }
+  eccState = { p: eccState.p, a: eccState.a, b: eccState.b, points: eccState.points, Gx: Gx, Gy: Gy, n: data.n };
+
+  out.innerHTML = `
+    <div style="font-family:var(--mono);font-size:.82rem;margin-bottom:.6rem">
+      <span style="color:var(--text-dim)">G = </span><span style="color:var(--accent)">(${Gx}, ${Gy})</span>
+      <span style="color:var(--text-dim);margin-left:1rem">Order n = </span><span style="color:var(--accent2)">${data.n}</span>
+    </div>
+    <div style="font-family:var(--mono);font-size:.72rem;color:var(--text-dim);margin-bottom:.4rem">All multiples of G:</div>
+    <div class="ecc-points-wrap">
+      <table class="points-table">
+        <thead><tr><th>k</th><th>kG (x, y)</th></tr></thead>
+        <tbody>
+          ${data.multiples.map(m => m.infinity
+            ? `<tr><td style="color:var(--text-dim)">${m.k}G</td><td style="color:var(--text-dim)">O — Point at Infinity</td></tr>`
+            : `<tr><td>${m.k}G</td><td>(${m.x}, ${m.y})</td></tr>`
+          ).join('')}
+        </tbody>
+      </table>
+    </div>`;
+  eccUnlock('ecc-step3');
 }
 
 async function eccKeygen() {
-  const curve = document.getElementById('ecc-curve').value;
-  const out = document.getElementById('ecc-output-area');
-  out.innerHTML = `<span class="spinner"></span><span style="font-family:var(--mono);font-size:.8rem;color:var(--text-dim)">Generating key pair...</span>`;
-  const data = await api('ecc', { action: 'keygen', curve });
+  const d = document.getElementById('ecc-d').value.trim();
+  const out = document.getElementById('ecc-step3-out');
+  if (eccState.Gx === null || eccState.Gx === undefined) {
+    out.innerHTML = errBox('Please complete Step 2 first — set a generator point G.');
+    return;
+  }
+  if (!eccState.n) {
+    out.innerHTML = errBox('Order n not computed. Please redo Step 2.');
+    return;
+  }
+  out.innerHTML = `<span class="spinner"></span>`;
+  const data = await api('ecc', {
+    action:'keygen', p:eccState.p, a:eccState.a, b:eccState.b,
+    Gx:eccState.Gx, Gy:eccState.Gy, n:eccState.n, d: d || null
+  });
   if (data.error) { out.innerHTML = errBox(data.error); return; }
+  const effD = data.effective_d;
+  const inD  = data.private_key;
+  const modChanged = effD !== inD;
+  const qLabel = data.public_key.infinity
+    ? 'O (Point at Infinity)'
+    : `(${data.public_key.x}, ${data.public_key.y})`;
+  const modRow = modChanged
+    ? `<div class="key-field"><span class="kf-label">d mod n =</span><span class="kf-value" style="color:var(--accent3)">${effD} &nbsp;<span style="color:var(--text-dim);font-size:.7rem">(${inD} mod ${data.n} = ${effD})</span></span></div>` : '';
   out.innerHTML = `
-    <div class="panel">
-      <div class="panel-title">ECC Key Pair</div>
-      <div class="key-card">
-        <div class="key-card-title priv">Private Key</div>
-        <div class="key-field"><span class="kf-label">d =</span><span class="kf-value">${data.private_key}</span></div>
-      </div>
-      <div class="key-card">
-        <div class="key-card-title pub">Public Key Q = d×G</div>
-        <div class="key-field"><span class="kf-label">Q =</span><span class="kf-value">(${data.public_key.x}, ${data.public_key.y})</span></div>
-        <div class="key-field"><span class="kf-label">On curve:</span><span class="kf-value" style="color:var(--success)">${data.on_curve ? '✓ Yes' : '✗ No'}</span></div>
-      </div>
+    <div class="key-card">
+      <div class="key-card-title priv">Private Key</div>
+      <div class="key-field"><span class="kf-label">d entered =</span><span class="kf-value">${inD}</span></div>
+      ${modRow}
+    </div>
+    <div class="key-card">
+      <div class="key-card-title pub">Public Key  Q = ${effD}×G</div>
+      <div class="key-field"><span class="kf-label">Q =</span><span class="kf-value">${qLabel}</span></div>
+      <div class="key-field"><span class="kf-label">On curve:</span><span class="kf-value" style="color:var(--success)">${data.on_curve ? '✓ Yes' : '✗ No'}</span></div>
     </div>`;
 }
 
-async function eccECDH() {
-  const curve = document.getElementById('ecc-curve').value;
-  const out = document.getElementById('ecc-output-area');
+// ─── ECDH ────────────────────────────────────────────
+// eccCopyParamsToECDH and ecdhSetup replaced by eccInitECDH / ecdhSetupManual
+
+async function ecdhRun() {
+  if (ecdhState.Gx === null || ecdhState.Gx === undefined || !ecdhState.n) { alert('Confirm the curve first (Step 1).'); return; }
+  const alice_a = document.getElementById('ecdh-alice').value.trim();
+  const bob_b   = document.getElementById('ecdh-bob').value.trim();
+  const out = document.getElementById('ecdh-step3-out');
   out.innerHTML = `<span class="spinner"></span><span style="font-family:var(--mono);font-size:.8rem;color:var(--text-dim)">Running ECDH...</span>`;
-  const data = await api('ecc', { action: 'ecdh', curve });
+  const data = await api('ecc', {
+    action:'ecdh', p:ecdhState.p, a:ecdhState.a, b:ecdhState.b,
+    Gx:ecdhState.Gx, Gy:ecdhState.Gy, n:ecdhState.n,
+    alice_a: alice_a || null, bob_b: bob_b || null
+  });
   if (data.error) { out.innerHTML = errBox(data.error); return; }
-  out.innerHTML = `
-    <div class="panel">
-      <div class="panel-title">ECDH Key Exchange</div>
-      <div class="grid-2" style="gap:.75rem;margin-bottom:.75rem">
-        <div class="key-card">
-          <div class="key-card-title pub">Alice</div>
-          <div class="key-field"><span class="kf-label">private a =</span><span class="kf-value">${data.alice.private}</span></div>
-          <div class="key-field"><span class="kf-label">public A =</span><span class="kf-value">(${data.alice.public.x}, ${data.alice.public.y})</span></div>
+  const aEff = data.alice.effective;
+  const bEff = data.bob.effective;
+  const aModNote = aEff !== data.alice.private ? `(${data.alice.private} mod ${data.n} = ${aEff})` : '';
+  const bModNote = bEff !== data.bob.private   ? `(${data.bob.private} mod ${data.n} = ${bEff})`   : '';
+  renderECDHAnimation(out, data, aEff, bEff, aModNote, bModNote);
+}
+
+function eccClearECDH() {
+  document.getElementById('ecdh-alice').value = '';
+  document.getElementById('ecdh-bob').value = '';
+  document.getElementById('ecdh-step3-out').innerHTML = '<div style="color:var(--text-dim);font-family:var(--mono);font-size:.8rem">Run the exchange to see results.</div>';
+}
+
+// ─── ECDH ANIMATION ──────────────────────────────────
+function renderECDHAnimation(container, data, aEff, bEff, aModNote, bModNote) {
+  const Ax = data.alice.public.x, Ay = data.alice.public.y;
+  const Bx = data.bob.public.x,   By = data.bob.public.y;
+  const Sx = data.shared_alice.x, Sy = data.shared_alice.y;
+  const pt = (x,y) => (x===null) ? 'O (∞)' : `(${x}, ${y})`;
+
+  container.innerHTML = `<div class="ecdh-anim-wrap" id="ecdhAnimWrap">
+
+    <!-- Step indicator -->
+    <div class="anim-steps-bar">
+      <div class="anim-step-dot active" id="dot1">1</div>
+      <div class="anim-step-line"></div>
+      <div class="anim-step-dot" id="dot2">2</div>
+      <div class="anim-step-line"></div>
+      <div class="anim-step-dot" id="dot3">3</div>
+      <div class="anim-step-line"></div>
+      <div class="anim-step-dot" id="dot4">4</div>
+    </div>
+
+    <!-- Step 1 -->
+    <div class="anim-scene active" id="scene1">
+      <div class="scene-title">Step 1 — Each party generates a key pair</div>
+      <div class="scene-stage">
+        <div class="figure-col">
+          ${aliceFig('alice-gen')}
+          <div class="fig-name alice-col">Alice</div>
+          <div class="fig-info">
+            <div class="info-row"><span class="info-lbl">Private:</span> a = <strong>${data.alice.private}</strong> ${aModNote ? `<span class="mod-tag">${aModNote}</span>` : ''}</div>
+            <div class="info-row"><span class="info-lbl">Public:</span> A = ${aEff}×G = <strong>${pt(Ax,Ay)}</strong></div>
+          </div>
         </div>
-        <div class="key-card">
-          <div class="key-card-title" style="color:var(--accent2)">Bob</div>
-          <div class="key-field"><span class="kf-label">private b =</span><span class="kf-value">${data.bob.private}</span></div>
-          <div class="key-field"><span class="kf-label">public B =</span><span class="kf-value">(${data.bob.public.x}, ${data.bob.public.y})</span></div>
+        <div class="scene-mid">
+          <div class="curve-badge">y²=x³+ax+b (mod p)</div>
+          <div class="g-badge">G=(${ecdhState.Gx},${ecdhState.Gy}) · n=${data.n}</div>
+        </div>
+        <div class="figure-col">
+          ${bobFig('bob-gen')}
+          <div class="fig-name bob-col">Bob</div>
+          <div class="fig-info">
+            <div class="info-row"><span class="info-lbl">Private:</span> b = <strong>${data.bob.private}</strong> ${bModNote ? `<span class="mod-tag">${bModNote}</span>` : ''}</div>
+            <div class="info-row"><span class="info-lbl">Public:</span> B = ${bEff}×G = <strong>${pt(Bx,By)}</strong></div>
+          </div>
         </div>
       </div>
-      <div class="key-card" style="border-color:${data.match ? 'rgba(63,185,80,.4)':'rgba(248,81,73,.4)'}">
-        <div class="key-card-title" style="color:var(--success)">Shared Secret</div>
-        <div class="key-field"><span class="kf-label">Alice: a×B =</span><span class="kf-value">(${data.shared_alice.x}, ${data.shared_alice.y})</span></div>
-        <div class="key-field"><span class="kf-label">Bob:   b×A =</span><span class="kf-value">(${data.shared_bob.x}, ${data.shared_bob.y})</span></div>
-        <div style="margin-top:.5rem;font-family:var(--mono);font-size:.82rem;color:${data.match ? 'var(--success)':'var(--danger)'}">
-          ${data.match ? '✓ Shared keys match — key exchange successful!' : '✗ Keys do not match!'}
+    </div>
+
+    <!-- Step 2 -->
+    <div class="anim-scene" id="scene2">
+      <div class="scene-title">Step 2 — Public keys exchanged over open channel</div>
+      <div class="scene-stage">
+        <div class="figure-col">
+          ${aliceFig('alice-send')}
+          <div class="fig-name alice-col">Alice</div>
+          <div class="fig-info">Sends <strong>A = ${pt(Ax,Ay)}</strong></div>
+        </div>
+        <div class="scene-mid exchange-mid">
+          <div class="msg-fly msg-right" id="msgRight">
+            <div class="msg-envelope">A = ${pt(Ax,Ay)}</div>
+            <div class="msg-arrow">→</div>
+          </div>
+          <div class="msg-fly msg-left" id="msgLeft">
+            <div class="msg-arrow">←</div>
+            <div class="msg-envelope">B = ${pt(Bx,By)}</div>
+          </div>
+        </div>
+        <div class="figure-col">
+          ${bobFig('bob-recv')}
+          <div class="fig-name bob-col">Bob</div>
+          <div class="fig-info">Sends <strong>B = ${pt(Bx,By)}</strong></div>
         </div>
       </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="anim-scene" id="scene3">
+      <div class="scene-title">Step 3 — Each computes the shared secret independently</div>
+      <div class="scene-stage">
+        <div class="figure-col">
+          ${aliceFig('alice-think')}
+          <div class="fig-name alice-col">Alice computes</div>
+          <div class="fig-info">
+            <div class="info-row">a × B = ${aEff} × ${pt(Bx,By)}</div>
+            <div class="info-row compute-ans">= <strong>${pt(Sx,Sy)}</strong></div>
+          </div>
+        </div>
+        <div class="scene-mid">
+          <div class="lock-anim" id="lockAnim">🔐</div>
+        </div>
+        <div class="figure-col">
+          ${bobFig('bob-think')}
+          <div class="fig-name bob-col">Bob computes</div>
+          <div class="fig-info">
+            <div class="info-row">b × A = ${bEff} × ${pt(Ax,Ay)}</div>
+            <div class="info-row compute-ans">= <strong>${pt(data.shared_bob.x, data.shared_bob.y)}</strong></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 4 -->
+    <div class="anim-scene" id="scene4">
+      <div class="scene-title">Step 4 — Shared secret established!</div>
+      <div class="scene-stage" style="justify-content:center">
+        <div class="shared-reveal-anim">
+          <div class="shared-icon">🔑</div>
+          <div class="shared-point-lbl">Shared Point = ${pt(Sx,Sy)}</div>
+          <div class="shared-key-lbl">${data.match ? '✓' : '✗'} Shared Key = <span class="shared-key-val">${data.shared_key ?? 'N/A'}</span></div>
+          <div class="shared-sub-lbl">x-coordinate of the shared point</div>
+          <div style="display:flex;gap:.75rem;margin-top:1rem;justify-content:center">
+            ${aliceFig('alice-happy')}
+            <div style="align-self:center;font-size:1.5rem">🤝</div>
+            ${bobFig('bob-happy')}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="anim-nav">
+      <button class="btn btn-ghost" id="animPrev" onclick="animStep(-1)" disabled>← Prev</button>
+      <span class="anim-counter" id="animCounter">1 / 4</span>
+      <button class="btn btn-primary" id="animNext" onclick="animStep(1)">Next →</button>
+    </div>
+
+  </div>`;
+
+  // kick off step 2 message animation when it becomes visible
+  window._ecdhStep = 1;
+}
+
+function aliceFig(id) {
+  return `<svg id="${id}" width="64" height="100" viewBox="0 0 64 100" style="overflow:visible">
+    <!-- head -->
+    <circle cx="32" cy="16" r="13" fill="rgba(124,58,237,.1)" stroke="#7c3aed" stroke-width="1.8"/>
+    <!-- hair -->
+    <ellipse cx="32" cy="8" rx="12" ry="5" fill="#7c3aed" opacity=".5"/>
+    <path d="M19 10 Q16 22 18 28" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" opacity=".5"/>
+    <path d="M45 10 Q48 22 46 28" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" opacity=".5"/>
+    <!-- body -->
+    <line x1="32" y1="29" x2="32" y2="62" stroke="#7c3aed" stroke-width="2.2" stroke-linecap="round"/>
+    <!-- arms -->
+    <line x1="32" y1="38" x2="14" y2="52" stroke="#7c3aed" stroke-width="2.2" stroke-linecap="round"/>
+    <line x1="32" y1="38" x2="50" y2="52" stroke="#7c3aed" stroke-width="2.2" stroke-linecap="round"/>
+    <!-- legs -->
+    <line x1="32" y1="62" x2="20" y2="92" stroke="#7c3aed" stroke-width="2.2" stroke-linecap="round"/>
+    <line x1="32" y1="62" x2="44" y2="92" stroke="#7c3aed" stroke-width="2.2" stroke-linecap="round"/>
+    <!-- skirt hint -->
+    <path d="M20 56 Q32 68 44 56" fill="rgba(124,58,237,.12)" stroke="#7c3aed" stroke-width="1" stroke-linecap="round"/>
+  </svg>`;
+}
+
+function bobFig(id) {
+  return `<svg id="${id}" width="64" height="100" viewBox="0 0 64 100" style="overflow:visible">
+    <!-- head -->
+    <circle cx="32" cy="16" r="13" fill="rgba(13,148,136,.1)" stroke="#0d9488" stroke-width="1.8"/>
+    <!-- hair (short/hat style) -->
+    <rect x="20" y="5" width="24" height="7" rx="3" fill="#0d9488" opacity=".45"/>
+    <!-- body -->
+    <line x1="32" y1="29" x2="32" y2="62" stroke="#0d9488" stroke-width="2.2" stroke-linecap="round"/>
+    <!-- arms (straight out) -->
+    <line x1="32" y1="38" x2="13" y2="42" stroke="#0d9488" stroke-width="2.2" stroke-linecap="round"/>
+    <line x1="32" y1="38" x2="51" y2="42" stroke="#0d9488" stroke-width="2.2" stroke-linecap="round"/>
+    <!-- legs -->
+    <line x1="32" y1="62" x2="20" y2="92" stroke="#0d9488" stroke-width="2.2" stroke-linecap="round"/>
+    <line x1="32" y1="62" x2="44" y2="92" stroke="#0d9488" stroke-width="2.2" stroke-linecap="round"/>
+  </svg>`;
+}
+
+function animStep(dir) {
+  const total = 4;
+  window._ecdhStep = Math.max(1, Math.min(total, (window._ecdhStep || 1) + dir));
+  const step = window._ecdhStep;
+
+  document.querySelectorAll('.anim-scene').forEach((s,i) => {
+    s.classList.toggle('active', i + 1 === step);
+  });
+  document.querySelectorAll('.anim-step-dot').forEach((d,i) => {
+    d.classList.toggle('active', i + 1 === step);
+    d.classList.toggle('done',   i + 1 < step);
+  });
+  document.getElementById('animCounter').textContent = `${step} / ${total}`;
+  document.getElementById('animPrev').disabled = step === 1;
+  document.getElementById('animNext').disabled = step === total;
+  document.getElementById('animNext').textContent = step === total - 1 ? 'Finish →' : 'Next →';
+
+  // Trigger message fly animation on step 2
+  if (step === 2) {
+    setTimeout(() => {
+      const r = document.getElementById('msgRight');
+      const l = document.getElementById('msgLeft');
+      if (r) r.classList.add('fly');
+      if (l) l.classList.add('fly');
+    }, 100);
+  }
+  // Trigger lock pulse on step 3
+  if (step === 3) {
+    const lock = document.getElementById('lockAnim');
+    if (lock) { lock.classList.remove('pulse'); void lock.offsetWidth; lock.classList.add('pulse'); }
+  }
+}
+
+
+// ─── BENCHMARK ───────────────────────────────────────
+async function runBenchmark() {
+  const btn    = document.getElementById('runBenchBtn');
+  const status = document.getElementById('bench-status');
+  const resDiv = document.getElementById('bench-results');
+  btn.disabled = true;
+  btn.textContent = 'Running...';
+  status.innerHTML = '<span class="spinner"></span> Benchmarking all algorithms (RSA key gen may take ~10s)...';
+
+  const data = await api('benchmark', {});
+  btn.disabled = false;
+  btn.textContent = 'Run Again';
+
+  if (data.error) { status.innerHTML = errBox(data.error); return; }
+  status.innerHTML = `<span style="color:var(--success)">✓ Done — ${data.results.length} benchmarks completed.</span>`;
+  resDiv.style.display = 'block';
+  renderBenchChart(data.results);
+  renderBenchTable(data.results);
+  renderSecTable(data.results);
+}
+
+function renderBenchChart(results) {
+  const el = document.getElementById('bench-chart');
+  // Use log scale for bars since RSA is orders of magnitude slower
+  const maxLog = Math.log10(Math.max(...results.map(r => r.avg_ms)) + 0.001) + 0.5;
+  const catBar = {
+    'Classical':  'cat-bar-classical',
+    'Symmetric':  'cat-bar-sym',
+    'Public-Key': 'cat-bar-pub'
+  };
+  el.innerHTML = results.map(r => {
+    const logVal = Math.log10(r.avg_ms + 0.0001);
+    const pct = Math.max(1, ((logVal + 4) / (maxLog + 4)) * 100);
+    const cls = catBar[r.category] || 'cat-bar-sym';
+    return `<div class="chart-row">
+      <div class="chart-label" title="${r.label}">${r.label}</div>
+      <div class="chart-bar-wrap">
+        <div class="chart-bar ${cls}" style="width:${pct.toFixed(1)}%"></div>
+      </div>
+      <div class="chart-val">${r.avg_ms}ms</div>
     </div>`;
+  }).join('');
+}
+
+function renderBenchTable(results) {
+  const catCls = { 'Classical': 'cat-classical', 'Symmetric': 'cat-sym', 'Public-Key': 'cat-pub' };
+  document.getElementById('bench-table').innerHTML = `
+    <thead><tr>
+      <th>Algorithm</th><th>Category</th><th>Key Size</th>
+      <th>Avg (ms)</th><th>Min (ms)</th><th>Max (ms)</th>
+    </tr></thead>
+    <tbody>
+      ${results.map(r => `<tr>
+        <td>${r.label}</td>
+        <td class="${catCls[r.category] || ''}">${r.category}</td>
+        <td style="color:var(--text-dim)">${r.key_size}</td>
+        <td class="ms-val">${r.avg_ms}</td>
+        <td style="color:var(--text-dim)">${r.min_ms}</td>
+        <td style="color:var(--text-dim)">${r.max_ms}</td>
+      </tr>`).join('')}
+    </tbody>`;
+}
+
+const SEC_DATA = [
+  { algo: 'Substitution Cipher', cat: 'Classical', key: '26! ≈ 4×10²⁶', effective: '~88 bits', attack: 'Frequency analysis', level: 'broken', note: 'Broken trivially on any text >50 chars' },
+  { algo: 'Double Transposition', cat: 'Classical', key: 'r! × c!', effective: 'varies', attack: 'Brute force / known plaintext', level: 'weak', note: 'Preserves letter frequencies; small keys are enumerable' },
+  { algo: 'DES', cat: 'Symmetric', key: '56-bit', effective: '56-bit', attack: 'Brute force (1998)', level: 'broken', note: 'Cracked in 22 hours in 1999; retired' },
+  { algo: 'AES-128', cat: 'Symmetric', key: '128-bit', effective: '128-bit', attack: 'Best: 2¹²⁶ (biclique)', level: 'good', note: 'Current standard; safe for most uses' },
+  { algo: 'AES-256', cat: 'Symmetric', key: '256-bit', effective: '256-bit', attack: 'No practical attack known', level: 'good', note: 'Post-quantum candidate; recommended for long-term data' },
+  { algo: 'RSA-512', cat: 'Public-Key', key: '512-bit', effective: '<80-bit', attack: 'Factored in weeks (2000s)', level: 'broken', note: 'Deprecated; factored with GNFS' },
+  { algo: 'RSA-1024', cat: 'Public-Key', key: '1024-bit', effective: '~80-bit', attack: 'Borderline; computationally expensive', level: 'ok', note: 'NIST deprecated in 2013; avoid for new systems' },
+  { algo: 'RSA-2048', cat: 'Public-Key', key: '2048-bit', effective: '~112-bit', attack: 'No practical attack known', level: 'good', note: 'Current recommendation; safe until ~2030' },
+  { algo: 'ECC (demo curve)', cat: 'Public-Key', key: 'mod 23', effective: '~5-bit', attack: 'Trivial brute force', level: 'broken', note: 'Demo only; real ECC uses 256-bit+ curves' },
+];
+
+function renderSecTable(results) {
+  const lvlCls = { broken: 'sec-broken', weak: 'sec-weak', ok: 'sec-ok', good: 'sec-good' };
+  const lvlLabel = { broken: 'Broken', weak: 'Weak', ok: 'Borderline', good: 'Secure' };
+  document.getElementById('sec-table').innerHTML = `
+    <thead><tr>
+      <th>Algorithm</th><th>Category</th><th>Key Size</th>
+      <th>Effective Security</th><th>Known Attack</th><th>Status</th><th>Notes</th>
+    </tr></thead>
+    <tbody>
+      ${SEC_DATA.map(r => `<tr>
+        <td style="font-weight:600">${r.algo}</td>
+        <td style="color:var(--text-dim)">${r.cat}</td>
+        <td style="color:var(--text-dim)">${r.key}</td>
+        <td>${r.effective}</td>
+        <td style="color:var(--text-dim);font-size:.72rem">${r.attack}</td>
+        <td class="${lvlCls[r.level]}">${lvlLabel[r.level]}</td>
+        <td style="color:var(--text-dim);font-size:.72rem">${r.note}</td>
+      </tr>`).join('')}
+    </tbody>`;
 }
 </script>
 </body>
