@@ -1034,7 +1034,7 @@
 <div class="page" id="page-aes">
   <div class="page-title">AES — Advanced Encryption Standard</div>
   
-  <div class="toggle-group" style="max-width:240px">
+  <div class="toggle-group" id="aes-mode-toggle" style="max-width:240px">
     <button class="active" onclick="aesSetMode('encrypt',this)">Encrypt</button>
     <button onclick="aesSetMode('decrypt',this)">Decrypt</button>
   </div>
@@ -1070,10 +1070,11 @@
 <div class="page" id="page-rsa">
   <div class="page-title">RSA — Rivest-Shamir-Adleman</div>
 
-  <div class="toggle-group" style="max-width:360px">
+  <div class="toggle-group" id="rsa-mode-toggle" style="max-width:480px">
     <button class="active" onclick="rsaSetTab('generate',this)">1 — Generate Keys</button>
     <button onclick="rsaSetTab('encrypt',this)">2 — Encrypt</button>
     <button onclick="rsaSetTab('decrypt',this)">3 — Decrypt</button>
+    <button onclick="rsaSetTab('practice',this)">4 — Practice</button>
   </div>
 
   <!-- Generate tab -->
@@ -1139,13 +1140,38 @@
       </div>
     </div>
   </div>
+  <!-- Practice tab -->
+  <div id="rsa-tab-practice" class="grid-2" style="display:none">
+    <div class="panel">
+      <div class="panel-title">Practice Problem — Manual RSA</div>
+      <label>Prime p</label>
+      <input type="number" id="rsa-prac-p" placeholder="e.g. 61" min="2">
+      <label>Prime q</label>
+      <input type="number" id="rsa-prac-q" placeholder="e.g. 53" min="2">
+      <label>Public exponent e <span style="font-size:.72rem;color:var(--text-dim)">(must be coprime to phi)</span></label>
+      <input type="number" id="rsa-prac-e" placeholder="e.g. 17" min="2">
+      <label>Message to encrypt <span style="font-size:.72rem;color:var(--text-dim)">(optional)</span></label>
+      <input type="text" id="rsa-prac-msg" placeholder="Short text or leave blank">
+      <div class="btn-row" style="margin-top:.75rem">
+        <button class="btn btn-primary" onclick="rsaPractice()">Solve</button>
+        <button class="btn btn-ghost" onclick="rsaClearTab('practice')">Clear</button>
+      </div>
+      <div id="rsa-prac-err" style="margin-top:.5rem;font-size:.78rem;color:var(--danger)"></div>
+    </div>
+    <div class="panel" style="align-self:start">
+      <div class="panel-title">Step-by-Step Solution</div>
+      <div id="rsa-prac-output">
+        <div style="color:var(--text-dim);font-family:var(--mono);font-size:.8rem">Enter p, q, e and click Solve.</div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- ══════════════ ECC ══════════════ -->
 <div class="page" id="page-ecc">
   <div class="page-title">ECC — Elliptic Curve Cryptography</div>
 
-  <div class="toggle-group" style="max-width:380px">
+  <div class="toggle-group" id="ecc-mode-toggle" style="max-width:380px">
     <button class="active" onclick="eccSetTab('keygen',this)">Key Generation</button>
     <button onclick="eccSetTab('ecdh',this)">ECDH Key Exchange</button>
   </div>
@@ -1365,28 +1391,35 @@ const PAGE_NAMES = {
 
 let pageHistory = [];
 
-function showPage(name) {
-  const current = document.querySelector('.page.active');
-  const currentId = current ? current.id.replace('page-', '') : null;
-  if (currentId && currentId !== name) pageHistory.push(currentId);
-
+function _applyPage(name) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-' + name).classList.add('active');
   document.getElementById('navPageName').textContent = PAGE_NAMES[name] || '';
   document.getElementById('headerBtns').style.display = name === 'home' ? 'none' : 'flex';
 }
 
+function showPage(name) {
+  const current = document.querySelector('.page.active');
+  const currentId = current ? current.id.replace('page-', '') : null;
+  if (currentId && currentId !== name) pageHistory.push(currentId);
+  try { history.pushState({ page: name }, '', '#' + name); } catch(e) {}
+  _applyPage(name);
+}
+
 function goBack() {
-  if (pageHistory.length > 0) {
-    const prev = pageHistory.pop();
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById('page-' + prev).classList.add('active');
-    document.getElementById('navPageName').textContent = PAGE_NAMES[prev] || '';
-    document.getElementById('headerBtns').style.display = prev === 'home' ? 'none' : 'flex';
-  } else {
-    showPage('home');
+  try { history.back(); } catch(e) {
+    if (pageHistory.length > 0) _applyPage(pageHistory.pop());
+    else _applyPage('home');
   }
 }
+
+window.addEventListener('popstate', function(e) {
+  const name = (e.state && e.state.page) ? e.state.page : (pageHistory.pop() || 'home');
+  _applyPage(name);
+});
+
+// On load, set initial history state
+try { history.replaceState({ page: 'home' }, '', '#home'); } catch(e) {}
 
 // ─── API HELPER ──────────────────────────────────────
 async function api(endpoint, body) {
@@ -1603,7 +1636,9 @@ function clearDES() {
 // ─── AES ─────────────────────────────────────────────
 function aesSetMode(mode, btn) {
   aesMode = mode;
-  document.querySelectorAll('#page-aes .toggle-group:first-of-type button').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('#aes-mode-toggle button').forEach(b => {
+    b.classList.remove('active');
+  });
   btn.classList.add('active');
   document.getElementById('aes-text-label').textContent = mode === 'encrypt' ? 'Plaintext' : 'Ciphertext (hex)';
   document.getElementById('aes-btn-text').textContent = mode === 'encrypt' ? 'Encrypt' : 'Decrypt';
@@ -1614,7 +1649,9 @@ function aesSetMode(mode, btn) {
 function aesSetBits(bits, btn) {
   aesBits = bits;
   document.querySelectorAll('#page-aes .toggle-group').forEach((tg, i) => {
-    if (i === 1) tg.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+    if (i === 1) {
+      tg.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+    }
   });
   btn.classList.add('active');
 }
@@ -1651,11 +1688,12 @@ function clearAES() {
 const EMPTY_OUTPUT = (msg) => `<div style="color:var(--text-dim);font-family:var(--mono);font-size:.8rem">${msg}</div>`;
 
 function rsaSetTab(tab, btn) {
-  document.querySelectorAll('#page-rsa .toggle-group:first-of-type button').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('#rsa-mode-toggle button').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('rsa-tab-generate').style.display = tab === 'generate' ? 'grid' : 'none';
   document.getElementById('rsa-tab-encrypt').style.display  = tab === 'encrypt'  ? 'grid' : 'none';
   document.getElementById('rsa-tab-decrypt').style.display  = tab === 'decrypt'  ? 'grid' : 'none';
+  document.getElementById('rsa-tab-practice').style.display = tab === 'practice' ? 'grid' : 'none';
   if (tab === 'encrypt' || tab === 'decrypt') {
     const hint = rsaKeys ? `Using key: e=${rsaKeys.e}, n=${rsaKeys.n.slice(0,18)}...` : 'Generate keys first (tab 1).';
     document.getElementById('rsa-enc-key-hint').textContent = hint;
@@ -1676,10 +1714,69 @@ function rsaClearTab(tab) {
   } else if (tab === 'encrypt') {
     document.getElementById('rsa-pt').value = '';
     document.getElementById('rsa-enc-output').innerHTML = EMPTY_OUTPUT('Encrypt a message to see results.');
-  } else {
+  } else if (tab === 'decrypt') {
     document.getElementById('rsa-ct-input').value = '';
     document.getElementById('rsa-dec-output').innerHTML = EMPTY_OUTPUT('Decrypt a ciphertext to see results.');
+  } else if (tab === 'practice') {
+    document.getElementById('rsa-prac-p').value = '';
+    document.getElementById('rsa-prac-q').value = '';
+    document.getElementById('rsa-prac-e').value = '';
+    document.getElementById('rsa-prac-msg').value = '';
+    document.getElementById('rsa-prac-err').textContent = '';
+    document.getElementById('rsa-prac-output').innerHTML = EMPTY_OUTPUT('Enter p, q, e and click Solve.');
   }
+}
+
+async function rsaPractice() {
+  const p   = parseInt(document.getElementById('rsa-prac-p').value.trim()) || 0;
+  const q   = parseInt(document.getElementById('rsa-prac-q').value.trim()) || 0;
+  const e   = parseInt(document.getElementById('rsa-prac-e').value.trim()) || 0;
+  const msg = document.getElementById('rsa-prac-msg').value.trim();
+  const err = document.getElementById('rsa-prac-err');
+  const out = document.getElementById('rsa-prac-output');
+  err.textContent = '';
+  if (!p || !q || !e) { err.textContent = 'Please enter p, q, and e.'; return; }
+  out.innerHTML = '<span class="spinner"></span>';
+  const data = await api('rsa', { action: 'practice', p, q, e, text: msg });
+  if (data.error) { err.textContent = data.error; out.innerHTML = EMPTY_OUTPUT('Fix the error and try again.'); return; }
+
+  const msgRows = data.ciphertext_int ? `
+    <div class="key-card" style="margin-top:.75rem">
+      <div class="key-card-title data">Encryption: m^e mod n</div>
+      <div class="key-field"><span class="kf-label">plaintext =</span><span class="kf-value">${msg}</span></div>
+      <div class="key-field"><span class="kf-label">ciphertext (int) =</span><span class="kf-value">${data.ciphertext_int}</span></div>
+      <div class="key-field"><span class="kf-label">ciphertext (hex) =</span><span class="kf-value">${data.ciphertext_hex}</span></div>
+    </div>
+    <div class="key-card" style="margin-top:.75rem">
+      <div class="key-card-title data">Decryption: c^d mod n</div>
+      <div class="key-field"><span class="kf-label">recovered =</span><span class="kf-value" style="color:var(--success)">${data.plaintext}</span></div>
+    </div>` : '';
+
+  out.innerHTML = `
+    <div class="key-card">
+      <div class="key-card-title" style="color:var(--text-dim)">Step 1 — Compute n and phi</div>
+      <div class="key-field"><span class="kf-label">n = p × q =</span><span class="kf-value">${data.p} × ${data.q} = ${data.n}</span></div>
+      <div class="key-field"><span class="kf-label">phi(n) = (p-1)(q-1) =</span><span class="kf-value">${parseInt(data.p)-1} × ${parseInt(data.q)-1} = ${data.phi}</span></div>
+    </div>
+    <div class="key-card" style="margin-top:.75rem">
+      <div class="key-card-title pub">Step 2 — Public Key</div>
+      <div class="key-field"><span class="kf-label">e =</span><span class="kf-value">${data.e}</span></div>
+      <div class="key-field"><span class="kf-label">n =</span><span class="kf-value">${data.n}</span></div>
+      <div style="font-family:var(--mono);font-size:.72rem;color:var(--success);margin-top:.4rem">✓ gcd(e, phi) = 1 — valid exponent</div>
+    </div>
+    <div class="key-card" style="margin-top:.75rem">
+      <div class="key-card-title priv">Step 3 — Private Key (d = e⁻¹ mod phi)</div>
+      <div class="key-field"><span class="kf-label">d =</span><span class="kf-value">${data.d}</span></div>
+      <div style="font-family:var(--mono);font-size:.72rem;color:var(--text-dim);margin-top:.4rem">Computed using Extended Euclidean Algorithm</div>
+    </div>
+    <div class="key-card" style="margin-top:.75rem;border-color:rgba(176,22,82,.3)">
+      <div class="key-card-title" style="color:var(--accent3)">Step 4 — Factorization Attack</div>
+      <div class="key-field"><span class="kf-label">p =</span><span class="kf-value">${data.factorization.p}</span></div>
+      <div class="key-field"><span class="kf-label">q =</span><span class="kf-value">${data.factorization.q}</span></div>
+      <div class="key-field"><span class="kf-label">d recovered =</span><span class="kf-value">${data.factorization.d_recovered}</span></div>
+      <div style="font-family:var(--mono);font-size:.75rem;color:var(--success);margin-top:.4rem">✓ Private key successfully recovered from public key!</div>
+    </div>
+    ${msgRows}`;
 }
 
 async function rsaGenerate() {
@@ -1769,7 +1866,7 @@ let eccState = { p:23, a:1, b:1, points:[], Gx:null, Gy:null, n:null };
 let ecdhState = { p:23, a:1, b:1, Gx:null, Gy:null, n:null };
 
 function eccSetTab(tab, btn) {
-  document.querySelectorAll('#page-ecc .toggle-group:first-of-type button').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('#ecc-mode-toggle button').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('ecc-tab-keygen').style.display = tab === 'keygen' ? 'block' : 'none';
   document.getElementById('ecc-tab-ecdh').style.display   = tab === 'ecdh'   ? 'block' : 'none';

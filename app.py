@@ -252,6 +252,46 @@ def api_rsa():
         except Exception as ex:
             return jsonify({'error': str(ex)}), 400
 
+    elif action == 'practice':
+        try:
+            import math
+            p   = int(data.get('p', 0))
+            q   = int(data.get('q', 0))
+            e   = int(data.get('e', 0))
+            msg = data.get('text', '').strip()
+            if p < 2 or q < 2:
+                return jsonify({'error': 'p and q must be integers >= 2.'}), 400
+            if p == q:
+                return jsonify({'error': 'p and q must be different primes.'}), 400
+            n   = p * q
+            phi = (p - 1) * (q - 1)
+            if e < 2:
+                return jsonify({'error': 'e must be >= 2.'}), 400
+            if math.gcd(e, phi) != 1:
+                return jsonify({'error': f'e={e} is not relatively prime to phi(n)={phi}. Choose a different e.'}), 400
+            d = mod_inverse(e, phi)
+            ct_int = ct_hex = pt_out = None
+            if msg:
+                m_int = int.from_bytes(msg.encode('utf-8'), 'big')
+                if m_int >= n:
+                    return jsonify({'error': f'Message too large for n={n}. Use a shorter message or larger p/q.'}), 400
+                from public_key.rsa import mod_exp
+                ct_int = mod_exp(m_int, e, n)
+                ct_hex = hex(ct_int)
+                pt_int = mod_exp(ct_int, d, n)
+                pt_bytes = pt_int.to_bytes((pt_int.bit_length() + 7) // 8, 'big')
+                pt_out = pt_bytes.decode('utf-8')
+            return jsonify({
+                'p': str(p), 'q': str(q), 'n': str(n), 'phi': str(phi),
+                'e': str(e), 'd': hex(d), 'n_hex': hex(n),
+                'ciphertext_int': str(ct_int) if ct_int is not None else None,
+                'ciphertext_hex': ct_hex,
+                'plaintext': pt_out,
+                'factorization': {'success': True, 'p': str(p), 'q': str(q), 'd_recovered': hex(d), 'match': True}
+            })
+        except Exception as ex:
+            return jsonify({'error': str(ex)}), 400
+
     return jsonify({'error': 'Unknown action'}), 400
 
 @app.route('/api/ecc', methods=['POST'])
